@@ -1,0 +1,15 @@
+{
+  "id": "c3-worker-ts",
+  "name": "Worker (TypeScript) — official",
+  "description": "Cloudflare’s official TypeScript Worker starter, generated with create-cloudflare.",
+  "type": "worker",
+  "category": "typescript",
+  "deployCommand": "deploy",
+  "buildCommand": "",
+  "requiresRoute": false,
+  "source": "local",
+  "deploy": {
+    "setup": "npm install",
+    "command": "deploy"
+  }
+}

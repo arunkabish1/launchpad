@@ -1,0 +1,10 @@
+{
+  "id": "worker-ts",
+  "name": "Cloudflare Worker (TypeScript)",
+  "description": "A minimal TypeScript Worker. Deploys with `wrangler deploy` on every push to main.",
+  "type": "worker",
+  "category": "typescript",
+  "deployCommand": "deploy",
+  "buildCommand": "",
+  "requiresRoute": false
+}

@@ -1,0 +1,42 @@
+import { NextRequest, NextResponse } from "next/server";
+import { listProjects } from "@/lib/store";
+import { launchProject, LaunchError } from "@/lib/launch";
+import { requireAuth, authRequiredResponse, verifyOrigin } from "@/lib/auth";
+import type { LaunchRequest } from "@/lib/types";
+
+export const runtime = "nodejs";
+
+export async function GET(request: NextRequest) {
+  const auth = requireAuth(request);
+  if (!auth.ok) return authRequiredResponse();
+  return NextResponse.json({ projects: await listProjects() });
+}
+
+export async function POST(request: NextRequest) {
+  const auth = requireAuth(request);
+  if (!auth.ok) return authRequiredResponse();
+  if (!verifyOrigin(request)) {
+    return NextResponse.json({ error: "Cross-origin request rejected." }, { status: 403 });
+  }
+
+  let body: LaunchRequest;
+  try {
+    body = (await request.json()) as LaunchRequest;
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
+  }
+
+  try {
+    const project = await launchProject({ ...body, actor: auth.actor });
+    return NextResponse.json({ project }, { status: 201 });
+  } catch (err) {
+    if (err instanceof LaunchError) {
+      return NextResponse.json({ error: err.message }, { status: 400 });
+    }
+    console.error("Launch failed:", err);
+    return NextResponse.json(
+      { error: "Launch failed: " + (err as Error).message },
+      { status: 500 }
+    );
+  }
+}

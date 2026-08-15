@@ -1,0 +1,16 @@
+{
+  "id": "c3-worker-python",
+  "name": "Worker (Python) — official",
+  "description": "Cloudflare’s official Python Worker starter, generated with create-cloudflare.",
+  "type": "worker",
+  "category": "python",
+  "deployCommand": "deploy",
+  "buildCommand": "",
+  "requiresRoute": false,
+  "source": "local",
+  "deploy": {
+    "runtime": "python",
+    "setup": "npm install",
+    "command": "uv run pywrangler deploy"
+  }
+}

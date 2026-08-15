@@ -1,0 +1,15 @@
+{
+  "id": "c3-next",
+  "name": "Next.js — official",
+  "description": "Cloudflare’s official Next.js starter on Workers, generated with create-cloudflare.",
+  "type": "worker",
+  "category": "framework",
+  "deployCommand": "deploy",
+  "buildCommand": "npm run build",
+  "requiresRoute": false,
+  "source": "local",
+  "deploy": {
+    "setup": "npm install && npm run build",
+    "command": "deploy"
+  }
+}

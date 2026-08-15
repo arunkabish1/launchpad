@@ -1,0 +1,6 @@
+name = "__PROJECT_NAME__"
+main = "src/index.js"
+compatibility_date = "2025-08-01"
+
+[observability]
+enabled = true

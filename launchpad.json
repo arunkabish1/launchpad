@@ -1,0 +1,9 @@
+{
+  "cloudflare": {
+    "defaultAccountId": ""
+  },
+  "github": {
+    "patEnvVar": "GITHUB_PAT",
+    "org": ""
+  }
+}

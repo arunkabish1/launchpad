@@ -1,0 +1,15 @@
+{
+  "id": "c3-hono",
+  "name": "Hono — official",
+  "description": "Cloudflare’s official Hono starter, generated with create-cloudflare.",
+  "type": "worker",
+  "category": "framework",
+  "deployCommand": "deploy",
+  "buildCommand": "",
+  "requiresRoute": false,
+  "source": "local",
+  "deploy": {
+    "setup": "npm install",
+    "command": "deploy"
+  }
+}

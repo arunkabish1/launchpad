@@ -1,0 +1,10 @@
+{
+  "id": "worker-js",
+  "name": "Cloudflare Worker (JavaScript)",
+  "description": "A minimal JavaScript Worker. No build step, deploys on every push to main.",
+  "type": "worker",
+  "category": "javascript",
+  "deployCommand": "deploy",
+  "buildCommand": "",
+  "requiresRoute": false
+}

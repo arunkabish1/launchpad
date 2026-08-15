@@ -1,0 +1,10 @@
+{
+  "id": "pages-static",
+  "name": "Cloudflare Pages (Static site)",
+  "description": "A static site served by Cloudflare Pages from the public/ directory.",
+  "type": "pages",
+  "category": "static",
+  "deployCommand": "pages deploy public --project-name=__PROJECT_NAME__",
+  "buildCommand": "",
+  "requiresRoute": false
+}

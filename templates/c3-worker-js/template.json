@@ -1,0 +1,15 @@
+{
+  "id": "c3-worker-js",
+  "name": "Worker (JavaScript) — official",
+  "description": "Cloudflare’s official JavaScript Worker starter, generated with create-cloudflare.",
+  "type": "worker",
+  "category": "javascript",
+  "deployCommand": "deploy",
+  "buildCommand": "",
+  "requiresRoute": false,
+  "source": "local",
+  "deploy": {
+    "setup": "npm install",
+    "command": "deploy"
+  }
+}
