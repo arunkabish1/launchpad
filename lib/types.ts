@@ -1,4 +1,10 @@
-export type DeployTarget = "worker" | "pages";
+export type DeployTarget = "worker" | "pages" | "lambda" | "amplify";
+
+export type Provider = "cloudflare" | "aws";
+
+export function providerForTarget(type: DeployTarget): Provider {
+  return type === "lambda" || type === "amplify" ? "aws" : "cloudflare";
+}
 
 export type ProjectStatus =
   | "queued"
@@ -9,7 +15,7 @@ export type ProjectStatus =
   | "no-runs"
   | "unknown";
 
-export type TemplateSource = "local" | "c3";
+export type TemplateSource = "local" | "c3" | "aws";
 
 export type TemplateCategory =
   | "javascript"
@@ -35,6 +41,7 @@ export interface TemplateInfo {
   name: string;
   description: string;
   type: DeployTarget;
+  provider: Provider;
   category: TemplateCategory;
   deployCommand: string;
   buildCommand: string;
@@ -49,6 +56,12 @@ export interface CloudflareConfig {
   defaultAccountId: string;
 }
 
+export interface AwsConfig {
+  accessKeyEnv: string;
+  secretKeyEnv: string;
+  defaultRegion: string;
+}
+
 export interface GithubConfig {
   patEnvVar: string;
   org: string;
@@ -56,6 +69,7 @@ export interface GithubConfig {
 
 export interface LaunchpadConfig {
   cloudflare: CloudflareConfig;
+  aws: AwsConfig;
   github: GithubConfig;
 }
 
@@ -66,6 +80,9 @@ export interface ConfigStatus {
   defaultAccountId: string;
   secretKeySet: boolean;
   org: string;
+  awsAccessKeySet: boolean;
+  awsSecretKeySet: boolean;
+  awsRegion: string;
 }
 
 export interface Project {
@@ -74,6 +91,7 @@ export interface Project {
   templateId: string;
   templateName: string;
   type: DeployTarget;
+  provider: Provider;
   route: string | null;
   owner: string;
   repo: string;
@@ -81,6 +99,9 @@ export interface Project {
   createdAt: string;
   liveUrl: string | null;
   patEnc?: string;
+  awsAccessKeyEnc?: string;
+  awsSecretKeyEnc?: string;
+  awsRegion?: string;
   envVars?: StoredEnvVar[];
   serviceBindings?: ServiceBinding[];
   previewEnabled?: boolean;
@@ -183,6 +204,9 @@ export interface LaunchRequest {
   githubPat?: string;
   cloudflareToken?: string;
   accountId?: string;
+  awsAccessKey?: string;
+  awsSecretKey?: string;
+  awsRegion?: string;
   actor?: string;
 }
 

@@ -1,0 +1,22 @@
+{
+  "name": "aws-node-express",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "esbuild src/index.ts --bundle --platform=node --target=node20 --outfile=dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@vendia/serverless-express": "^4.14.0",
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "esbuild": "^0.21.5",
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.0",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.14.0"
+  }
+}

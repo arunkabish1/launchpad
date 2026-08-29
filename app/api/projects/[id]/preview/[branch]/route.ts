@@ -18,9 +18,9 @@ export async function GET(req: NextRequest, ctx: RouteContext<"/api/projects/[id
   if (!project) {
     return NextResponse.json({ error: "Project not found." }, { status: 404 });
   }
-  if (project.type !== "worker") {
+  if (project.provider !== "cloudflare" || project.type !== "worker") {
     return NextResponse.json(
-      { error: "Per-branch preview deployments are not supported for Pages projects." },
+      { error: "Per-branch preview deployments are only supported for Cloudflare Workers projects." },
       { status: 400 }
     );
   }

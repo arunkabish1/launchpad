@@ -2,6 +2,11 @@
   "cloudflare": {
     "defaultAccountId": ""
   },
+  "aws": {
+    "accessKeyEnv": "AWS_ACCESS_KEY_ID",
+    "secretKeyEnv": "AWS_SECRET_ACCESS_KEY",
+    "defaultRegion": "us-east-1"
+  },
   "github": {
     "patEnvVar": "GITHUB_PAT",
     "org": ""

@@ -1,0 +1,11 @@
+version=0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "__PROJECT_NAME__"
+capabilities = "CAPABILITY_IAM"
+s3_bucket = ""
+s3_prefix = ""
+region = "us-east-1"
+confirm_changeset = false
+resolve_s3 = true

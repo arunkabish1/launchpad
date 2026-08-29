@@ -79,7 +79,14 @@ export default function DeleteProjectModal({ project, onClose, onDeleted }: Dele
               onChange={(e) => setDeleteCloudflare(e.target.checked)}
               className="h-4 w-4 rounded border-slate-600"
             />
-            Delete the Cloudflare {project.type} project
+            Delete the{" "}
+            {project.provider === "aws" ? (
+              project.type === "amplify" ? "AWS Amplify app" : "AWS Lambda stack"
+            ) : (
+              <>
+                Cloudflare {project.type === "pages" ? "Pages" : "Workers"} project
+              </>
+            )}
           </label>
         </div>
 

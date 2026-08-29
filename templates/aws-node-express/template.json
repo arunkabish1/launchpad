@@ -1,0 +1,16 @@
+{
+  "id": "aws-node-express",
+  "name": "Node.js Express (AWS Lambda)",
+  "description": "An Express app running on AWS Lambda behind an HTTP API via AWS SAM. Routes, JSON, and middleware work as usual.",
+  "type": "lambda",
+  "provider": "aws",
+  "category": "framework",
+  "deployCommand": "sam deploy",
+  "buildCommand": "npm run build",
+  "requiresRoute": false,
+  "source": "local",
+  "deploy": {
+    "setup": "npm install",
+    "runtime": "node"
+  }
+}

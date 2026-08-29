@@ -1,0 +1,15 @@
+{
+  "id": "aws-amplify-static",
+  "name": "AWS Amplify (Static)",
+  "description": "A static site hosted on AWS Amplify (S3 + CloudFront). Drop files into public/ and push to main.",
+  "type": "amplify",
+  "provider": "aws",
+  "category": "static",
+  "deployCommand": "amplify",
+  "buildCommand": "",
+  "requiresRoute": false,
+  "source": "local",
+  "deploy": {
+    "runtime": "node"
+  }
+}

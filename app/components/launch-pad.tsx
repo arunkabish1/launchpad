@@ -10,14 +10,19 @@ interface LaunchPadProps {
   envPatSet: boolean;
   envTokenSet: boolean;
   defaultAccountId: string;
+  envAwsAccessKeySet: boolean;
+  envAwsSecretKeySet: boolean;
   org?: string;
 }
 
 type Step = 1 | 2 | 3;
 
-const platformLabel = (t: TemplateInfo) => (t.type === "pages" ? "Cloudflare Pages" : "Cloudflare Workers");
+const platformLabel = (t: TemplateInfo) => {
+  if (t.provider === "aws") return t.type === "amplify" ? "AWS Amplify" : "AWS Lambda";
+  return t.type === "pages" ? "Cloudflare Pages" : "Cloudflare Workers";
+};
 
-export default function LaunchPad({ templates, envPatSet, envTokenSet, defaultAccountId, org }: LaunchPadProps) {
+export default function LaunchPad({ templates, envPatSet, envTokenSet, defaultAccountId, envAwsAccessKeySet, envAwsSecretKeySet, org }: LaunchPadProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -34,6 +39,9 @@ export default function LaunchPad({ templates, envPatSet, envTokenSet, defaultAc
   const [githubPat, setGithubPat] = useState("");
   const [cloudflareToken, setCloudflareToken] = useState("");
   const [accountId, setAccountId] = useState(defaultAccountId);
+  const [awsAccessKey, setAwsAccessKey] = useState("");
+  const [awsSecretKey, setAwsSecretKey] = useState("");
+  const [awsRegion, setAwsRegion] = useState("");
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -63,13 +71,24 @@ export default function LaunchPad({ templates, envPatSet, envTokenSet, defaultAc
       setError("Enter a GitHub Personal Access Token (or set GITHUB_PAT in .env).");
       return;
     }
-    if (!envTokenSet && !cloudflareToken.trim()) {
-      setError("Enter a Cloudflare API token.");
-      return;
-    }
-    if (!accountId.trim()) {
-      setError("Enter your Cloudflare account ID.");
-      return;
+    if (selected.provider === "aws") {
+      if (!awsAccessKey.trim() && !envAwsAccessKeySet) {
+        setError("Enter your AWS Access Key ID (or set it in .env).");
+        return;
+      }
+      if (!awsSecretKey.trim() && !envAwsSecretKeySet) {
+        setError("Enter your AWS Secret Access Key (or set it in .env).");
+        return;
+      }
+    } else {
+      if (!envTokenSet && !cloudflareToken.trim()) {
+        setError("Enter a Cloudflare API token.");
+        return;
+      }
+      if (!accountId.trim()) {
+        setError("Enter your Cloudflare account ID.");
+        return;
+      }
     }
 
     setSubmitting(true);
@@ -83,8 +102,16 @@ export default function LaunchPad({ templates, envPatSet, envTokenSet, defaultAc
           route: route.trim() || undefined,
           private: isPrivate,
           githubPat: githubPat.trim() || undefined,
-          cloudflareToken: cloudflareToken.trim() || undefined,
-          accountId: accountId.trim() || undefined,
+          ...(selected.provider === "aws"
+            ? {
+                awsAccessKey: awsAccessKey.trim() || undefined,
+                awsSecretKey: awsSecretKey.trim() || undefined,
+                awsRegion: awsRegion.trim() || undefined,
+              }
+            : {
+                cloudflareToken: cloudflareToken.trim() || undefined,
+                accountId: accountId.trim() || undefined,
+              }),
         }),
       });
 
@@ -404,35 +431,86 @@ export default function LaunchPad({ templates, envPatSet, envTokenSet, defaultAc
                 </p>
               </div>
 
-              <div>
-                <label className="mb-1 block text-xs font-medium text-slate-300">
-                  Cloudflare API token
-                </label>
-                <input
-                  type="password"
-                  className={inputClass}
-                  value={cloudflareToken}
-                  onChange={(e) => setCloudflareToken(e.target.value)}
-                  placeholder={envTokenSet ? "Set via .env (optional here)" : "Enter your Cloudflare API token"}
-                  autoComplete="off"
-                />
-                <p className="mt-1 text-[11px] text-slate-500">
-                  Stored as a GitHub repo secret for the deploy workflow.
-                </p>
-              </div>
+              {selected.provider === "aws" ? (
+                <>
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-slate-300">
+                      AWS Access Key ID
+                    </label>
+                    <input
+                      type="password"
+                      className={inputClass}
+                      value={awsAccessKey}
+                      onChange={(e) => setAwsAccessKey(e.target.value)}
+                      placeholder={envAwsAccessKeySet ? "Set via .env (optional here)" : "AKIA..."}
+                      autoComplete="off"
+                    />
+                  </div>
 
-              <div>
-                <label className="mb-1 block text-xs font-medium text-slate-300">
-                  Cloudflare account ID
-                </label>
-                <input
-                  className={inputClass}
-                  value={accountId}
-                  onChange={(e) => setAccountId(e.target.value)}
-                  placeholder="Your 32-char Cloudflare account ID"
-                  autoComplete="off"
-                />
-              </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-slate-300">
+                      AWS Secret Access Key
+                    </label>
+                    <input
+                      type="password"
+                      className={inputClass}
+                      value={awsSecretKey}
+                      onChange={(e) => setAwsSecretKey(e.target.value)}
+                      placeholder={envAwsSecretKeySet ? "Set via .env (optional here)" : "Your AWS secret key"}
+                      autoComplete="off"
+                    />
+                    <p className="mt-1 text-[11px] text-slate-500">
+                      Stored as GitHub repo secrets for the deploy workflow.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-slate-300">AWS Region</label>
+                    <input
+                      className={inputClass}
+                      value={awsRegion}
+                      onChange={(e) => setAwsRegion(e.target.value)}
+                      placeholder="us-east-1"
+                      autoComplete="off"
+                    />
+                    <p className="mt-1 text-[11px] text-slate-500">
+                      Leave blank to use the configured default region.
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-slate-300">
+                      Cloudflare API token
+                    </label>
+                    <input
+                      type="password"
+                      className={inputClass}
+                      value={cloudflareToken}
+                      onChange={(e) => setCloudflareToken(e.target.value)}
+                      placeholder={envTokenSet ? "Set via .env (optional here)" : "Enter your Cloudflare API token"}
+                      autoComplete="off"
+                    />
+                    <p className="mt-1 text-[11px] text-slate-500">
+                      Stored as a GitHub repo secret for the deploy workflow.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-slate-300">
+                      Cloudflare account ID
+                    </label>
+                    <input
+                      className={inputClass}
+                      value={accountId}
+                      onChange={(e) => setAccountId(e.target.value)}
+                      placeholder="Your 32-char Cloudflare account ID"
+                      autoComplete="off"
+                    />
+                  </div>
+                </>
+              )}
 
               {error && (
                 <div className="rounded-md border border-red-800 bg-red-950/50 px-3 py-2 text-sm text-red-300">
@@ -450,8 +528,7 @@ export default function LaunchPad({ templates, envPatSet, envTokenSet, defaultAc
                   ? selected.source === "c3"
                     ? "Scaffolding with create-cloudflare, creating repo, pushing…"
                     : "Scaffolding, creating repo, pushing…"
-                  : "Launch app"}
-              </button>
+                  : "Launch app"}              </button>
             </div>
           </div>
 
@@ -482,7 +559,13 @@ export default function LaunchPad({ templates, envPatSet, envTokenSet, defaultAc
                 <div className="flex justify-between gap-3">
                   <dt className="text-slate-500">URL</dt>
                   <dd className="truncate font-mono text-slate-300" title="Assigned after deploy">
-                    {selected.type === "pages" ? "<name>.pages.dev" : "<name>.<subdomain>.workers.dev"}
+                    {selected.provider === "aws"
+                      ? selected.type === "amplify"
+                        ? "Amplify app URL"
+                        : "API Gateway URL"
+                      : selected.type === "pages"
+                        ? "<name>.pages.dev"
+                        : "<name>.<subdomain>.workers.dev"}
                   </dd>
                 </div>
               </dl>

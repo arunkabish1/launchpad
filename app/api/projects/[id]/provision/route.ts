@@ -25,7 +25,7 @@ export async function GET(req: NextRequest, ctx: RouteContext<"/api/projects/[id
   }
 
   let enabled = false;
-  if (project.type === "worker") {
+  if (project.provider === "cloudflare" && project.type === "worker") {
     const pat = await resolvePat(project.id);
     if (pat) {
       try {
@@ -50,6 +50,12 @@ export async function POST(req: NextRequest, ctx: RouteContext<"/api/projects/[i
   const project = await getProject(id);
   if (!project) {
     return NextResponse.json({ error: "Project not found." }, { status: 404 });
+  }
+  if (project.provider !== "cloudflare") {
+    return NextResponse.json(
+      { error: "Provisioning from pushed code is managed by the AWS SAM / Amplify templates in the repo." },
+      { status: 400 }
+    );
   }
   if (project.type !== "worker") {
     return NextResponse.json(

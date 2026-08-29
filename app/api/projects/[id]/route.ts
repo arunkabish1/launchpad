@@ -53,6 +53,7 @@ export async function GET(req: NextRequest, ctx: RouteContext<"/api/projects/[id
       name: project.templateName,
       description: "",
       type: project.type,
+      provider: project.provider,
       category: "static",
       deployCommand: "deploy",
       buildCommand: "",

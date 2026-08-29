@@ -1,0 +1,9 @@
+[project]
+name = "aws-lambda-py"
+version = "0.1.0"
+description = "Minimal Python Lambda for AWS (launched by Launchpad)"
+requires-python = ">=3.12"
+dependencies = []
+
+[tool.uv]
+package = false

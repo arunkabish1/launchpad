@@ -11,7 +11,7 @@ import {
 } from "./github";
 import { buildScaffoldFiles, type ScaffoldedFile } from "./scaffold";
 import { getTemplate } from "./templates";
-import { getEnvPat, getDefaultAccountId, getOrgName } from "./config";
+import { getEnvPat, getDefaultAccountId, getDefaultAwsRegion, getOrgName } from "./config";
 import { getWorkersSubdomain, buildLiveUrl } from "./cf";
 import { addProject } from "./store";
 import { rememberPat } from "./status";
@@ -52,11 +52,27 @@ export async function launchProject(request: LaunchRequest): Promise<Project> {
   const pat = (request.githubPat ?? "").trim() || (await getEnvPat());
   if (!pat) throw new LaunchError("A GitHub Personal Access Token is required.");
 
-  const cloudflareToken = (request.cloudflareToken ?? "").trim() || process.env.CLOUDFLARE_API_TOKEN || "";
-  if (!cloudflareToken) throw new LaunchError("A Cloudflare API token is required.");
+  const provider = template.provider;
 
-  const accountId = (request.accountId ?? "").trim() || (await getDefaultAccountId());
-  if (!accountId) throw new LaunchError("A Cloudflare account ID is required.");
+  let cloudflareToken = "";
+  let accountId = "";
+  let awsAccessKey = "";
+  let awsSecretKey = "";
+  let awsRegion = "";
+
+  if (provider === "aws") {
+    awsAccessKey = (request.awsAccessKey ?? "").trim() || process.env.AWS_ACCESS_KEY_ID || "";
+    awsSecretKey = (request.awsSecretKey ?? "").trim() || process.env.AWS_SECRET_ACCESS_KEY || "";
+    if (!awsAccessKey || !awsSecretKey) {
+      throw new LaunchError("AWS access key and secret key are required.");
+    }
+    awsRegion = (request.awsRegion ?? "").trim() || (await getDefaultAwsRegion());
+  } else {
+    cloudflareToken = (request.cloudflareToken ?? "").trim() || process.env.CLOUDFLARE_API_TOKEN || "";
+    if (!cloudflareToken) throw new LaunchError("A Cloudflare API token is required.");
+    accountId = (request.accountId ?? "").trim() || (await getDefaultAccountId());
+    if (!accountId) throw new LaunchError("A Cloudflare account ID is required.");
+  }
 
   const previewMasterKey =
     template.type === "worker" ? crypto.randomBytes(32).toString("base64") : null;
@@ -97,6 +113,11 @@ export async function launchProject(request: LaunchRequest): Promise<Project> {
       });
     }
     files.push(...injected);
+  } else if (provider === "aws" && template.type === "amplify") {
+    files.push({
+      path: ".github/workflows/preview.yml",
+      content: renderPreviewWorkflow(template, { projectName, hasLockfile }),
+    });
   }
 
   try {
@@ -136,10 +157,16 @@ export async function launchProject(request: LaunchRequest): Promise<Project> {
     }
 
     try {
-      await setRepoSecret(client, repoInfo.owner, repoInfo.repo, "CLOUDFLARE_API_TOKEN", cloudflareToken);
-      await setRepoSecret(client, repoInfo.owner, repoInfo.repo, "CLOUDFLARE_ACCOUNT_ID", accountId);
-      if (previewMasterKey) {
-        await setRepoSecret(client, repoInfo.owner, repoInfo.repo, "LP_ENV_MASTER_KEY", previewMasterKey);
+      if (provider === "aws") {
+        await setRepoSecret(client, repoInfo.owner, repoInfo.repo, "AWS_ACCESS_KEY_ID", awsAccessKey);
+        await setRepoSecret(client, repoInfo.owner, repoInfo.repo, "AWS_SECRET_ACCESS_KEY", awsSecretKey);
+        await setRepoSecret(client, repoInfo.owner, repoInfo.repo, "AWS_REGION", awsRegion);
+      } else {
+        await setRepoSecret(client, repoInfo.owner, repoInfo.repo, "CLOUDFLARE_API_TOKEN", cloudflareToken);
+        await setRepoSecret(client, repoInfo.owner, repoInfo.repo, "CLOUDFLARE_ACCOUNT_ID", accountId);
+        if (previewMasterKey) {
+          await setRepoSecret(client, repoInfo.owner, repoInfo.repo, "LP_ENV_MASTER_KEY", previewMasterKey);
+        }
       }
 
       await pushScaffoldToRepo(client, repoInfo.owner, repoInfo.repo, files, user);
@@ -155,15 +182,30 @@ export async function launchProject(request: LaunchRequest): Promise<Project> {
     }
 
     let workersSubdomain: string | null = null;
-    try {
-      workersSubdomain = await getWorkersSubdomain(cloudflareToken, accountId);
-    } catch {
-      // Best effort: without the subdomain we just skip the live URL for workers.
+    let liveUrl: string | null = null;
+    if (provider === "aws") {
+      liveUrl = null; // resolved lazily from the deployed stack / Amplify app
+    } else {
+      try {
+        workersSubdomain = await getWorkersSubdomain(cloudflareToken, accountId);
+      } catch {
+        // Best effort: without the subdomain we just skip the live URL for workers.
+      }
+      liveUrl = buildLiveUrl(template.type, projectName, workersSubdomain);
     }
 
     const previewKeyEnc =
       previewMasterKey && hasSecretKey()
         ? await encrypt(previewMasterKey).catch(() => undefined)
+        : undefined;
+
+    const awsAccessKeyEnc =
+      provider === "aws" && hasSecretKey()
+        ? await encrypt(awsAccessKey).catch(() => undefined)
+        : undefined;
+    const awsSecretKeyEnc =
+      provider === "aws" && hasSecretKey()
+        ? await encrypt(awsSecretKey).catch(() => undefined)
         : undefined;
 
     const project: Project = {
@@ -172,14 +214,18 @@ export async function launchProject(request: LaunchRequest): Promise<Project> {
       templateId: template.id,
       templateName: template.name,
       type: template.type,
+      provider: template.provider,
       route,
       owner: repoInfo.owner,
       repo: repoInfo.repo,
       githubUrl: repoInfo.htmlUrl,
       createdAt: new Date().toISOString(),
-      liveUrl: buildLiveUrl(template.type, projectName, workersSubdomain),
-      previewEnabled: template.type === "worker",
+      liveUrl,
+      previewEnabled: template.type === "worker" || (provider === "aws" && template.type === "amplify"),
       ...(previewKeyEnc ? { previewKeyEnc } : {}),
+      ...(provider === "aws" ? { awsRegion } : {}),
+      ...(awsAccessKeyEnc ? { awsAccessKeyEnc } : {}),
+      ...(awsSecretKeyEnc ? { awsSecretKeyEnc } : {}),
     };
 
     await addProject(project);

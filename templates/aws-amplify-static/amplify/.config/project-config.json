@@ -1,0 +1,15 @@
+{
+  "projectName": "__PROJECT_NAME__",
+  "version": "3.1",
+  "frontend": "javascript",
+  "javascript": {
+    "framework": "none",
+    "config": {
+      "SourceDir": "public",
+      "DistributionDir": "public",
+      "BuildCommand": "",
+      "StartCommand": ""
+    }
+  },
+  "providers": ["awscloudformation"]
+}

@@ -1,6 +1,7 @@
 import { getProject, updateProject } from "./store";
 import { setEnvVar, deleteEnvVar, getCloudflareToken } from "./cf";
 import { getDefaultAccountId } from "./config";
+import { setEnvVar as setAwsEnvVar, deleteEnvVar as deleteAwsEnvVar, resolveAwsCredentials } from "./aws";
 import { encrypt, hasSecretKey } from "./crypto";
 import { resolvePat } from "./status";
 import { createClient } from "./github";
@@ -14,6 +15,25 @@ export async function setProjectEnvVar(
 ): Promise<string | null> {
   const project = await getProject(projectId);
   if (!project) throw new Error("Project not found.");
+
+  if (project.provider === "aws") {
+    const creds = await resolveAwsCredentials(project);
+    if (!creds) throw new Error("AWS credentials are not configured for this project.");
+    await setAwsEnvVar(project.type, project.name, key, value, isSecret, creds);
+
+    let awsWarning: string | null = null;
+    if (hasSecretKey()) {
+      try {
+        const valueEnc = await encrypt(value);
+        const next = (project.envVars ?? []).filter((v) => v.key !== key);
+        next.push({ key, kind: isSecret ? "secret" : "text", valueEnc });
+        await updateProject(projectId, { envVars: next });
+      } catch (err) {
+        awsWarning = `Env var set, but its value could not be stored locally: ${(err as Error).message}`;
+      }
+    }
+    return awsWarning;
+  }
 
   const token = getCloudflareToken();
   const accountId = await getDefaultAccountId();
@@ -49,6 +69,17 @@ export async function setProjectEnvVar(
 export async function removeProjectEnvVar(projectId: string, key: string): Promise<void> {
   const project = await getProject(projectId);
   if (!project) throw new Error("Project not found.");
+
+  if (project.provider === "aws") {
+    const creds = await resolveAwsCredentials(project);
+    if (!creds) throw new Error("AWS credentials are not configured for this project.");
+    await deleteAwsEnvVar(project.type, project.name, key, creds);
+    if (hasSecretKey()) {
+      const next = (project.envVars ?? []).filter((v) => v.key !== key);
+      await updateProject(projectId, { envVars: next });
+    }
+    return;
+  }
 
   const token = getCloudflareToken();
   const accountId = await getDefaultAccountId();

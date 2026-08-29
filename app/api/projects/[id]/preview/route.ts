@@ -31,7 +31,7 @@ export async function GET(req: NextRequest, ctx: RouteContext<"/api/projects/[id
   const accountId = await getDefaultAccountId();
   let previews: PreviewDeployment[] = [];
   let warning: string | null = null;
-  if (project.type === "worker" && token && accountId) {
+  if (project.provider === "cloudflare" && project.type === "worker" && token && accountId) {
     try {
       const pat = await resolvePat(project.id);
       if (pat) {
@@ -61,9 +61,11 @@ export async function POST(req: NextRequest, ctx: RouteContext<"/api/projects/[i
   if (!project) {
     return NextResponse.json({ error: "Project not found." }, { status: 404 });
   }
-  if (project.type !== "worker") {
+  if (project.provider !== "cloudflare" || project.type !== "worker") {
     return NextResponse.json(
-      { error: "Per-branch preview deployments are not supported for Pages projects." },
+      project.provider === "aws"
+        ? { error: "AWS previews are managed at launch (Amplify branches) or are best-effort (Lambda)." }
+        : { error: "Per-branch preview deployments are not supported for Pages projects." },
       { status: 400 }
     );
   }

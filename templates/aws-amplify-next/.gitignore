@@ -1,0 +1,7 @@
+node_modules
+.next
+out
+.env
+amplify/backend/.amplify
+amplify/#current-cloud-backend
+*.log

@@ -1,0 +1,30 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Express app on AWS Lambda (launched by Launchpad)
+
+Globals:
+  Function:
+    Timeout: 15
+    MemorySize: 256
+    Runtime: nodejs20.x
+    Environment:
+      Variables:
+        NODE_ENV: production
+
+Resources:
+  AppFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: dist/
+      Handler: index.handler
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+
+Outputs:
+  ApiUrl:
+    Description: HTTP API endpoint URL
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com"

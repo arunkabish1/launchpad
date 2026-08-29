@@ -9,7 +9,10 @@ interface TemplatesBrowserProps {
   templates: TemplateInfo[];
 }
 
-const platformLabel = (t: TemplateInfo) => (t.type === "pages" ? "Cloudflare Pages" : "Cloudflare Workers");
+const platformLabel = (t: TemplateInfo) => {
+  if (t.provider === "aws") return t.type === "amplify" ? "AWS Amplify" : "AWS Lambda";
+  return t.type === "pages" ? "Cloudflare Pages" : "Cloudflare Workers";
+};
 
 export default function TemplatesBrowser({ templates }: TemplatesBrowserProps) {
   const [selected, setSelected] = useState<TemplateInfo | null>(null);

@@ -506,7 +506,13 @@ export default function ProjectPanel({
                       label="Platform"
                       value={
                         <span className="normal-case">
-                          {project.type === "pages" ? "Pages" : "Workers"}
+                          {project.provider === "aws"
+                            ? project.type === "amplify"
+                              ? "AWS Amplify"
+                              : "AWS Lambda"
+                            : project.type === "pages"
+                              ? "Pages"
+                              : "Workers"}
                         </span>
                       }
                     />
@@ -514,7 +520,13 @@ export default function ProjectPanel({
                       label="Route"
                       value={
                         project.route ??
-                        (project.type === "pages" ? "<name>.pages.dev" : "<name>.workers.dev")
+                        (project.provider === "aws"
+                          ? project.type === "amplify"
+                            ? "Amplify app URL"
+                            : "API Gateway URL"
+                          : project.type === "pages"
+                            ? "<name>.pages.dev"
+                            : "<name>.workers.dev")
                       }
                     />
                   </div>
@@ -537,7 +549,11 @@ export default function ProjectPanel({
                       <div className="flex justify-between gap-4">
                         <dt className="text-slate-500">Source</dt>
                         <dd className="text-right capitalize text-slate-100">
-                          {template.source === "c3" ? "create-cloudflare (live)" : "Built-in"}
+                          {project.provider === "aws"
+                            ? "AWS built-in"
+                            : template.source === "c3"
+                              ? "create-cloudflare (live)"
+                              : "Built-in"}
                         </dd>
                       </div>
                       <div className="flex justify-between gap-4">
@@ -591,10 +607,23 @@ export default function ProjectPanel({
                       </div>
                     </dl>
                     <div className="mt-4 rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-xs text-slate-500">
-                      Runs in GitHub Actions using{" "}
-                      <code className="font-mono text-slate-400">CLOUDFLARE_API_TOKEN</code> and{" "}
-                      <code className="font-mono text-slate-400">CLOUDFLARE_ACCOUNT_ID</code>{" "}
-                      secrets set at launch time.
+                      {project.provider === "aws" ? (
+                        <>
+                          Runs in GitHub Actions using{" "}
+                          <code className="font-mono text-slate-400">AWS_ACCESS_KEY_ID</code>,{" "}
+                          <code className="font-mono text-slate-400">AWS_SECRET_ACCESS_KEY</code>{" "}
+                          and{" "}
+                          <code className="font-mono text-slate-400">AWS_REGION</code> secrets set
+                          at launch time (via aws-sam / amplify).
+                        </>
+                      ) : (
+                        <>
+                          Runs in GitHub Actions using{" "}
+                          <code className="font-mono text-slate-400">CLOUDFLARE_API_TOKEN</code> and{" "}
+                          <code className="font-mono text-slate-400">CLOUDFLARE_ACCOUNT_ID</code>{" "}
+                          secrets set at launch time.
+                        </>
+                      )}
                     </div>
                   </div>
                 </Card>
@@ -644,7 +673,7 @@ export default function ProjectPanel({
                     onChange={(e) => setLiveLogsBranch(e.target.value)}
                     className="min-w-0 flex-1 rounded-md border border-slate-800 bg-slate-900/60 px-2.5 py-1.5 font-mono text-xs text-slate-300 outline-none transition-colors hover:border-slate-700 focus:border-[#f6821f]/50"
                   >
-                    {project.type === "worker" ? (
+                    {project.provider === "cloudflare" && project.type === "worker" ? (
                       BRANCHES.map((b) => (
                         <option key={b} value={b}>{b}</option>
                       ))
@@ -652,7 +681,7 @@ export default function ProjectPanel({
                       <option value="main">main</option>
                     )}
                   </select>
-                  {project.type === "worker" ? (
+                  {project.provider === "cloudflare" && project.type === "worker" ? (
                     <Link
                       href={`/projects/${project.id}/live-logs`}
                       id="open-live-logs-btn"
@@ -670,27 +699,31 @@ export default function ProjectPanel({
 
                 {/* Placeholder body */}
                 <div className="px-4 py-4 font-mono text-xs text-slate-700">
-                  {project.type === "worker" ? (
+                  {project.provider === "cloudflare" && project.type === "worker" ? (
                     <p>
                       Select a branch and click{" "}
                       <span className="text-[#f6821f]">Live Logs</span> to open the full-screen
                       terminal ›
                     </p>
                   ) : (
-                    <p>Live logs are not supported for Pages projects.</p>
+                    <p>Live logs are only supported for Cloudflare Workers projects.</p>
                   )}
                 </div>
               </div>
 
               {/* Preview Deployments */}
-              <PreviewPanel
-                projectId={project.id}
-                projectName={project.name}
-                projectType={project.type}
-              />
+              {project.provider === "cloudflare" && (
+                <PreviewPanel
+                  projectId={project.id}
+                  projectName={project.name}
+                  projectType={project.type}
+                />
+              )}
 
               {/* Provisioning from code */}
-              <ProvisionPanel projectId={project.id} projectType={project.type} />
+              {project.provider === "cloudflare" && (
+                <ProvisionPanel projectId={project.id} projectType={project.type} />
+              )}
 
               {/* Activity */}
               <ActivityPanel projectName={project.name} />
@@ -807,7 +840,9 @@ export default function ProjectPanel({
         {activeTab === "env" && <EnvPanel projectId={project.id} />}
 
         {/* ── BINDINGS TAB ── */}
-        {activeTab === "bindings" && <BindingsPanel projectId={project.id} />}
+        {activeTab === "bindings" && project.provider === "cloudflare" && (
+          <BindingsPanel projectId={project.id} />
+        )}
 
         {/* ── ACTIVITY TAB ── */}
         {activeTab === "activity" && <ActivityPanel projectName={project.name} />}

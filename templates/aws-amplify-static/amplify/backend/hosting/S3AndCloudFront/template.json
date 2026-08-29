@@ -1,0 +1,156 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Hosting Resources for Amplify Console or S3 + CloudFront",
+  "Parameters": {
+    "env": {
+      "Type": "String"
+    },
+    "bucketName": {
+      "Type": "String"
+    },
+    "OriginPath": {
+      "Type": "String",
+      "Default": ""
+    },
+    "CloudFrontErrorMessage": {
+      "Type": "String",
+      "Default": "There was an error"
+    }
+  },
+  "Conditions": {
+    "ShouldNotCreateEnvResources": {
+      "Fn::Equals": [
+        {
+          "Ref": "env"
+        },
+        "NONE"
+      ]
+    }
+  },
+  "Resources": {
+    "HostingBucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketName": {
+          "Fn::If": [
+            "ShouldNotCreateEnvResources",
+            {
+              "Ref": "bucketName"
+            },
+            {
+              "Fn::Join": [
+                "-",
+                [
+                  {
+                    "Ref": "bucketName"
+                  },
+                  {
+                    "Ref": "env"
+                  }
+                ]
+              ]
+            }
+          ]
+        },
+        "AccessControl": "PublicRead"
+      },
+      "DeletionPolicy": "Retain"
+    },
+    "CloudFrontOriginAccessIdentity": {
+      "Type": "AWS::CloudFront::CloudFrontOriginAccessIdentity",
+      "Properties": {
+        "CloudFrontOriginAccessIdentityConfig": {
+          "Comment": "origin identity for website hosting"
+        }
+      }
+    },
+    "WebsiteCDN": {
+      "Type": "AWS::CloudFront::Distribution",
+      "Properties": {
+        "DistributionConfig": {
+          "Origins": [
+            {
+              "Id": "S3Origin",
+              "DomainName": {
+                "Fn::GetAtt": [
+                  "HostingBucket",
+                  "DomainName"
+                ]
+              },
+              "OriginPath": {
+                "Ref": "OriginPath"
+              },
+              "S3OriginConfig": {
+                "OriginAccessIdentity": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "origin-access-identity/cloudfront/",
+                      {
+                        "Ref": "CloudFrontOriginAccessIdentity"
+                      }
+                    ]
+                  ]
+                }
+              }
+            }
+          ],
+          "ViewerCertificate": {
+            "CloudFrontDefaultCertificate": true
+          },
+          "Comment": "Launchpad static hosting",
+          "CacheBehaviors": [],
+          "DefaultCacheBehavior": {
+            "MinTTL": 0,
+            "TargetOriginId": "S3Origin",
+            "ViewerProtocolPolicy": "redirect-to-https",
+            "ForwardedValues": {
+              "QueryString": false
+            },
+            "Compress": true
+          },
+          "DefaultRootObject": "index.html",
+          "CustomErrorResponses": [
+            {
+              "ErrorCode": 404,
+              "ResponseCode": 200,
+              "ResponsePagePath": "/index.html"
+            }
+          ],
+          "Enabled": true,
+          "HttpVersion": "http2",
+          "IPV6Enabled": true,
+          "PriceClass": "PriceClass_100"
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "HostingBucketName": {
+      "Value": {
+        "Ref": "HostingBucket"
+      }
+    },
+    "WebsiteURL": {
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "https://",
+            {
+              "Fn::GetAtt": [
+                "WebsiteCDN",
+                "DomainName"
+              ]
+            }
+          ]
+        ]
+      }
+    },
+    "CloudFrontDistributionID": {
+      "Value": {
+        "Ref": "WebsiteCDN"
+      }
+    }
+  }
+}

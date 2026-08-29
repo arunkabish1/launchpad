@@ -34,6 +34,12 @@ export async function DELETE(
   if (!project) {
     return NextResponse.json({ error: "Project not found." }, { status: 404 });
   }
+  if (project.provider !== "cloudflare") {
+    return NextResponse.json(
+      { error: "Bindings are managed in the AWS SAM / Amplify templates for AWS projects." },
+      { status: 400 }
+    );
+  }
 
   const pat = await resolvePat(project.id);
   if (!pat) {

@@ -9,6 +9,7 @@ interface TemplateMeta {
   name: string;
   description: string;
   type: TemplateInfo["type"];
+  provider?: TemplateInfo["provider"];
   category: TemplateInfo["category"];
   deployCommand: string;
   buildCommand?: string;
@@ -35,6 +36,7 @@ export function getTemplate(id: string): TemplateInfo | null {
     name: meta.name,
     description: meta.description,
     type: meta.type,
+    provider: meta.provider ?? (meta.type === "lambda" || meta.type === "amplify" ? "aws" : "cloudflare"),
     category: meta.category,
     deployCommand: meta.deployCommand,
     buildCommand: meta.buildCommand ?? "",

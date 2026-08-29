@@ -12,6 +12,11 @@ function ensureSchemaOnce(): Promise<void> {
 function defaultConfig(): LaunchpadConfig {
   return {
     cloudflare: { defaultAccountId: "" },
+    aws: {
+      accessKeyEnv: "AWS_ACCESS_KEY_ID",
+      secretKeyEnv: "AWS_SECRET_ACCESS_KEY",
+      defaultRegion: "us-east-1",
+    },
     github: { patEnvVar: "GITHUB_PAT", org: "" },
   };
 }
@@ -40,6 +45,11 @@ export async function getConfig(): Promise<LaunchpadConfig> {
     cloudflare: {
       defaultAccountId:
         override?.cloudflare?.defaultAccountId ?? base.cloudflare.defaultAccountId,
+    },
+    aws: {
+      accessKeyEnv: override?.aws?.accessKeyEnv || base.aws.accessKeyEnv,
+      secretKeyEnv: override?.aws?.secretKeyEnv || base.aws.secretKeyEnv,
+      defaultRegion: override?.aws?.defaultRegion || base.aws.defaultRegion,
     },
     github: {
       patEnvVar: override?.github?.patEnvVar || base.github.patEnvVar,
@@ -78,6 +88,19 @@ export async function getOrgName(): Promise<string> {
   return config.github.org.trim() || "";
 }
 
+export async function getAwsCredentialEnvVars(): Promise<{ accessKeyEnv: string; secretKeyEnv: string }> {
+  const config = await getConfig();
+  return {
+    accessKeyEnv: config.aws.accessKeyEnv || "AWS_ACCESS_KEY_ID",
+    secretKeyEnv: config.aws.secretKeyEnv || "AWS_SECRET_ACCESS_KEY",
+  };
+}
+
+export async function getDefaultAwsRegion(): Promise<string> {
+  const config = await getConfig();
+  return config.aws.defaultRegion || "us-east-1";
+}
+
 export async function getConfigStatus(): Promise<ConfigStatus> {
   const config = await getConfig();
   const pat = await getEnvPat();
@@ -89,5 +112,8 @@ export async function getConfigStatus(): Promise<ConfigStatus> {
     defaultAccountId: accountId,
     secretKeySet: Boolean(process.env.LAUNCHPAD_SECRET || process.env.LAUNCHPAD_SESSION_SECRET),
     org: config.github.org,
+    awsAccessKeySet: Boolean((process.env[config.aws.accessKeyEnv] ?? "").trim()),
+    awsSecretKeySet: Boolean((process.env[config.aws.secretKeyEnv] ?? "").trim()),
+    awsRegion: config.aws.defaultRegion || "us-east-1",
   };
 }

@@ -42,9 +42,9 @@ export async function GET(req: NextRequest, ctx: RouteContext<"/api/projects/[id
   if (!project) {
     return NextResponse.json({ error: "Project not found." }, { status: 404 });
   }
-  if (project.type !== "worker") {
+  if (project.provider !== "cloudflare" || project.type !== "worker") {
     return NextResponse.json(
-      { error: "Live logs are only available for Workers projects right now." },
+      { error: "Live logs are only available for Cloudflare Workers projects right now." },
       { status: 400 }
     );
   }

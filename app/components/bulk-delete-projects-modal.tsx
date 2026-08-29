@@ -30,6 +30,13 @@ export default function BulkDeleteProjectsModal({
   const count = projects.length;
   const confirmed = confirm.trim() === String(count);
   const busy = deleting || !confirmed;
+  const hasAws = projects.some((p) => p.provider === "aws");
+  const allAws = count > 0 && projects.every((p) => p.provider === "aws");
+  const cloudLabel = allAws
+    ? "Delete the AWS projects"
+    : hasAws
+      ? "Delete the Cloudflare and AWS projects"
+      : "Delete the Cloudflare projects";
 
   async function handleDelete() {
     setDeleting(true);
@@ -105,9 +112,8 @@ export default function BulkDeleteProjectsModal({
               onChange={(e) => setDeleteCloudflare(e.target.checked)}
               className="h-4 w-4 rounded border-slate-600"
             />
-            Delete the Cloudflare projects
-          </label>
-        </div>
+            {cloudLabel}
+          </label>        </div>
 
         <div className="mt-4">
           <label className="mb-1 block text-xs font-medium text-slate-300">

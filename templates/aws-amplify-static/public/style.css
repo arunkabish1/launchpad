@@ -1,0 +1,13 @@
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #1a1a2e;
+  color: #eee;
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  margin: 0;
+}
+
+main {
+  text-align: center;
+}

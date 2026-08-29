@@ -1,0 +1,16 @@
+{
+  "id": "aws-lambda-ts",
+  "name": "AWS Lambda (TypeScript)",
+  "description": "A minimal TypeScript Lambda with a Function URL, deployed via AWS SAM.",
+  "type": "lambda",
+  "provider": "aws",
+  "category": "typescript",
+  "deployCommand": "sam deploy",
+  "buildCommand": "npm run build",
+  "requiresRoute": false,
+  "source": "local",
+  "deploy": {
+    "setup": "npm install",
+    "runtime": "node"
+  }
+}

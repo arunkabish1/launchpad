@@ -122,6 +122,12 @@ export async function POST(req: NextRequest, ctx: RouteContext<"/api/projects/[i
   if (!project) {
     return NextResponse.json({ error: "Project not found." }, { status: 404 });
   }
+  if (project.provider !== "cloudflare") {
+    return NextResponse.json(
+      { error: "Bindings are managed in the AWS SAM / Amplify templates for AWS projects." },
+      { status: 400 }
+    );
+  }
 
   let body: { type?: string; name?: string; resource?: string; domain?: string; existing?: boolean };
   try {

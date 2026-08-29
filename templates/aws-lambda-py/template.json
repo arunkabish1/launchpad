@@ -1,0 +1,15 @@
+{
+  "id": "aws-lambda-py",
+  "name": "AWS Lambda (Python)",
+  "description": "A minimal Python Lambda with an HTTP API, deployed via AWS SAM.",
+  "type": "lambda",
+  "provider": "aws",
+  "category": "python",
+  "deployCommand": "sam deploy",
+  "buildCommand": "",
+  "requiresRoute": false,
+  "source": "local",
+  "deploy": {
+    "runtime": "python"
+  }
+}

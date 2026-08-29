@@ -28,6 +28,7 @@ function StatusRow({ label, ok, hint }: { label: string; ok: boolean; hint: stri
 export default function SettingsPanel({ initialStatus }: SettingsPanelProps) {
   const [status, setStatus] = useState<ConfigStatus>(initialStatus);
   const [accountId, setAccountId] = useState(initialStatus.defaultAccountId);
+  const [awsRegion, setAwsRegion] = useState(initialStatus.awsRegion || "us-east-1");
   const [patEnvVar, setPatEnvVar] = useState("GITHUB_PAT");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,7 +51,7 @@ export default function SettingsPanel({ initialStatus }: SettingsPanelProps) {
       const res = await fetch("/api/config", {
         method: "PATCH",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ defaultAccountId: accountId, patEnvVar }),
+        body: JSON.stringify({ defaultAccountId: accountId, patEnvVar, awsRegion }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -86,6 +87,21 @@ export default function SettingsPanel({ initialStatus }: SettingsPanelProps) {
       label: "Cloudflare account ID",
       ok: Boolean(status.defaultAccountId),
       hint: status.defaultAccountId || "Set below or via CLOUDFLARE_ACCOUNT_ID.",
+    },
+    {
+      label: "AWS access key env",
+      ok: status.awsAccessKeySet,
+      hint: "AWS_ACCESS_KEY_ID (config) — used for AWS deploys and env vars.",
+    },
+    {
+      label: "AWS secret key env",
+      ok: status.awsSecretKeySet,
+      hint: "AWS_SECRET_ACCESS_KEY (config) — used for AWS deploys and env vars.",
+    },
+    {
+      label: "AWS default region",
+      ok: Boolean(status.awsRegion),
+      hint: status.awsRegion || "us-east-1 (default).",
     },
     {
       label: "Secret key",
@@ -140,6 +156,22 @@ export default function SettingsPanel({ initialStatus }: SettingsPanelProps) {
               placeholder="GITHUB_PAT"
               autoComplete="off"
             />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-300">
+              Default AWS region
+            </label>
+            <input
+              className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 outline-none focus:border-slate-500"
+              value={awsRegion}
+              onChange={(e) => setAwsRegion(e.target.value)}
+              placeholder="us-east-1"
+              autoComplete="off"
+            />
+            <p className="mt-1 text-[11px] text-slate-500">
+              Used for AWS deployments. Overridable per project at launch.
+            </p>
           </div>
 
           {error && (

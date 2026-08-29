@@ -140,6 +140,7 @@ export function templateForProvision(project: Project): TemplateInfo {
     name: project.templateName,
     description: "",
     type: "worker",
+    provider: "cloudflare",
     category: "javascript",
     deployCommand: "deploy",
     buildCommand: "",

@@ -20,6 +20,9 @@ export function renderDeployWorkflow(
   options: WorkflowOptions
 ): string {
   const { projectName, hasLockfile, provision } = options;
+  if (template.provider === "aws") {
+    return renderAwsDeployWorkflow(template, { projectName, hasLockfile, provision });
+  }
   const platform = template.type === "pages" ? "Pages" : "Workers";
   const provisionStep = provision && template.type !== "pages" ? PROVISION_STEP : "";
 
@@ -102,6 +105,9 @@ export function renderPreviewWorkflow(
   options: PreviewWorkflowOptions
 ): string {
   const { hasLockfile, deployCommand } = options;
+  if (template.provider === "aws") {
+    return renderAwsPreviewWorkflow(template, { ...options, deployCommand });
+  }
   const runtime = template.deploy?.runtime ?? "node";
   const deployCmd =
     deployCommand ??
@@ -171,4 +177,148 @@ ${previewEnv}
         if: github.event_name == 'delete' || github.event.action == 'closed'
         run: node .launchpad/preview.mjs teardown
 ${previewEnv}`;
+}
+
+function awsSetupSteps(template: TemplateInfo, hasLockfile: boolean): string {
+  const runtime = template.deploy?.runtime ?? "node";
+  if (runtime === "python") {
+    return `      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+`;
+  }
+  const setup = template.deploy?.setup ?? "";
+  if (!setup) {
+    return `      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+`;
+  }
+  const runCmd = hasLockfile ? setup.replace("npm install", "npm ci") : setup;
+  const cacheLine = hasLockfile ? "          cache: npm\n" : "";
+  return `      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+${cacheLine}
+      - run: ${runCmd}
+`;
+}
+
+function awsConfigureStep(): string {
+  return `      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: \${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: \${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: \${{ secrets.AWS_REGION }}
+`;
+}
+
+export function renderAwsDeployWorkflow(
+  template: TemplateInfo,
+  options: WorkflowOptions
+): string {
+  const { projectName, hasLockfile } = options;
+  const platform = template.type === "amplify" ? "Amplify" : "Lambda";
+  let command = template.deploy?.command ?? "";
+  if (!command) {
+    command =
+      template.type === "amplify"
+        ? "npx -y @aws-amplify/cli push --yes"
+        : `sam build && sam deploy --stack-name ${projectName} --no-confirm-changeset --no-fail-on-empty-changeset --capabilities CAPABILITY_IAM`;
+  }
+  command = command.split("__PROJECT_NAME__").join(projectName);
+
+  const header = `name: Deploy to AWS ${platform}
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${projectName}-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+`;
+  return `${header}${awsSetupSteps(template, hasLockfile)}${awsConfigureStep()}      - name: Deploy to AWS ${platform}
+        run: ${command}
+        env:
+          AWS_ACCESS_KEY_ID: \${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: \${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: \${{ secrets.AWS_REGION }}
+`;
+}
+
+export function renderAwsPreviewWorkflow(
+  template: TemplateInfo,
+  options: PreviewWorkflowOptions
+): string {
+  const { hasLockfile } = options;
+  if (template.type === "amplify") {
+    const header = `name: Preview (branch)
+
+on:
+  push:
+    branches-ignore: [main]
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+  delete:
+
+permissions:
+  contents: read
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+`;
+    return `${header}${awsSetupSteps(template, hasLockfile)}${awsConfigureStep()}      - name: Deploy preview
+        if: github.event_name != 'delete' && github.event.action != 'closed'
+        run: npx -y @aws-amplify/cli push --yes
+        env:
+          AWS_ACCESS_KEY_ID: \${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: \${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: \${{ secrets.AWS_REGION }}
+      - name: Teardown preview
+        if: github.event_name == 'delete' || github.event.action == 'closed'
+        run: npx -y @aws-amplify/cli delete
+        env:
+          AWS_ACCESS_KEY_ID: \${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: \${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: \${{ secrets.AWS_REGION }}
+`;
+  }
+  return `name: Preview (branch, best-effort)
+
+on:
+  push:
+    branches-ignore: [main]
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+
+permissions:
+  contents: read
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Preview skipped
+        run: echo "Lambda branch previews are best-effort in v1; deploy the branch manually via workflow_dispatch."
+`;
 }

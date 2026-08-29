@@ -1,0 +1,27 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Minimal Python Lambda (launched by Launchpad)
+
+Globals:
+  Function:
+    Timeout: 15
+    MemorySize: 128
+    Runtime: python3.12
+
+Resources:
+  AppFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: app.handler
+      Events:
+        HttpApi:
+          Type: HttpApi
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+
+Outputs:
+  ApiUrl:
+    Description: HTTP API endpoint URL
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com"

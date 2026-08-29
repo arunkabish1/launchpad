@@ -1,0 +1,16 @@
+{
+  "id": "aws-amplify-next",
+  "name": "Next.js on AWS Amplify",
+  "description": "A Next.js app deployed to AWS Amplify (Gen 2) hosting. SSR support via Amplify's Next.js adapter.",
+  "type": "amplify",
+  "provider": "aws",
+  "category": "framework",
+  "deployCommand": "amplify",
+  "buildCommand": "npm run build",
+  "requiresRoute": false,
+  "source": "local",
+  "deploy": {
+    "setup": "npm install",
+    "runtime": "node"
+  }
+}
