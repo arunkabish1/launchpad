@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { TemplateCategory, TemplateInfo } from "@/lib/types";
 import { CATEGORIES } from "@/lib/template-meta";
@@ -32,6 +32,7 @@ export default function LaunchPad({ templates, envPatSet, envTokenSet, defaultAc
   const [step, setStep] = useState<Step>(deepLinked ? 3 : 1);
   const [category, setCategory] = useState<TemplateCategory | null>(deepLinked?.category ?? null);
   const [selected, setSelected] = useState<TemplateInfo | null>(deepLinked);
+  const [details, setDetails] = useState<TemplateInfo | null>(null);
 
   const [projectName, setProjectName] = useState("");
   const [route, setRoute] = useState("");
@@ -44,6 +45,15 @@ export default function LaunchPad({ templates, envPatSet, envTokenSet, defaultAc
   const [awsRegion, setAwsRegion] = useState("");
 
   const isAmplify = selected?.provider === "aws" && selected?.type === "amplify";
+
+  useEffect(() => {
+    if (!details) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setDetails(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [details]);
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -170,7 +180,8 @@ export default function LaunchPad({ templates, envPatSet, envTokenSet, defaultAc
 
   if (step === 2) {
     return (
-      <div className="flex flex-col gap-8">
+      <>
+        <div className="flex flex-col gap-8">
         <div className="flex items-center justify-between gap-4">
           <h2 className="text-xl font-semibold text-white">Choose a template</h2>
           <button
@@ -185,7 +196,10 @@ export default function LaunchPad({ templates, envPatSet, envTokenSet, defaultAc
           {categoryTemplates.map((t) => (
             <div
               key={t.id}
-              onClick={() => setSelected(t)}
+              onClick={() => {
+                setSelected(t);
+                setStep(3);
+              }}
               className="flex flex-col rounded-xl border border-slate-800 bg-slate-900/60 p-4 transition-colors hover:border-slate-700 cursor-pointer"
             >
               <div className="flex items-start justify-between gap-3">
@@ -215,7 +229,10 @@ export default function LaunchPad({ templates, envPatSet, envTokenSet, defaultAc
               </div>
               <button
                 type="button"
-                onClick={() => setSelected(t)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDetails(t);
+                }}
                 className="mt-4 w-full rounded-md border border-slate-700 px-3 py-2 text-xs font-semibold text-slate-200 transition-colors hover:border-[#f6821f] hover:text-[#f6821f]"
               >
                 View details
@@ -224,6 +241,127 @@ export default function LaunchPad({ templates, envPatSet, envTokenSet, defaultAc
           ))}
         </div>
       </div>
+
+        {details && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+            onClick={() => setDetails(null)}
+            role="dialog"
+            aria-modal="true"
+            aria-label={`${details.name} details`}
+          >
+            <div
+              className="flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-slate-800 bg-slate-900 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-start justify-between gap-4 border-b border-slate-800 px-5 py-4">
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h2 className="text-base font-semibold text-white">{details.name}</h2>
+                    <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-400">
+                      {platformLabel(details)}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-slate-400">{details.description}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setDetails(null)}
+                  aria-label="Close"
+                  className="shrink-0 rounded-md p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white"
+                >
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <path d="M6 6l12 12M18 6L6 18" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4">
+                <div className="rounded-lg border border-slate-800 bg-slate-950/50 px-3.5 py-3">
+                  <span className="mb-2 block text-xs font-medium text-slate-300">Deployment</span>
+                  <dl className="space-y-1.5 text-xs">
+                    <div className="flex justify-between gap-3">
+                      <dt className="text-slate-500">Platform</dt>
+                      <dd className="text-right text-slate-200">{platformLabel(details)}</dd>
+                    </div>
+                    <div className="flex justify-between gap-3">
+                      <dt className="text-slate-500">Source</dt>
+                      <dd className="text-right text-slate-200">
+                        {details.source === "c3" ? "create-cloudflare (live)" : "Built-in"}
+                      </dd>
+                    </div>
+                    <div className="flex justify-between gap-3">
+                      <dt className="text-slate-500">Runtime</dt>
+                      <dd className="text-right text-slate-200">{templateStack(details)}</dd>
+                    </div>
+                    <div className="flex justify-between gap-3">
+                      <dt className="text-slate-500">Setup</dt>
+                      <dd className="truncate font-mono text-slate-200" title={details.deploy?.setup}>
+                        {details.deploy?.setup ?? (details.buildCommand || "—")}
+                      </dd>
+                    </div>
+                    <div className="flex justify-between gap-3">
+                      <dt className="text-slate-500">Deploy command</dt>
+                      <dd className="truncate font-mono text-slate-200" title={details.deploy?.command ?? details.deployCommand}>
+                        {details.deploy?.command ?? details.deployCommand}
+                      </dd>
+                    </div>
+                    <div className="flex justify-between gap-3">
+                      <dt className="text-slate-500">Files</dt>
+                      <dd className="text-slate-200">{details.files.length}</dd>
+                    </div>
+                  </dl>
+                </div>
+
+                {details.c3 && (
+                  <div>
+                    <span className="mb-1.5 block text-xs font-medium text-slate-300">
+                      create-cloudflare command
+                    </span>
+                    <code className="block rounded-md bg-slate-950 px-3 py-2 font-mono text-[11px] leading-relaxed text-slate-300">
+                      npm create cloudflare@latest -- {details.c3.args.join(" ")}
+                    </code>
+                  </div>
+                )}
+
+                <div>
+                  <span className="mb-1.5 block text-xs font-medium text-slate-300">
+                    Files in template ({details.files.length})
+                  </span>
+                  <ul className="grid gap-x-6 gap-y-1 font-mono text-[11px] text-slate-400 sm:grid-cols-2">
+                    {details.files.map((f) => (
+                      <li key={f} className="truncate">
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              <div className="flex gap-2 border-t border-slate-800 px-5 py-4">
+                <button
+                  type="button"
+                  onClick={() => setDetails(null)}
+                  className="rounded-md border border-slate-700 px-4 py-2 text-xs font-semibold text-slate-300 transition-colors hover:border-slate-500 hover:text-white"
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelected(details);
+                    setDetails(null);
+                    setStep(3);
+                  }}
+                  className="flex-1 rounded-md bg-[#f6821f] px-4 py-2 text-center text-xs font-semibold text-slate-950 transition-colors hover:bg-[#ff9436]"
+                >
+                  Use this template →
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </>
     );
   }
 
