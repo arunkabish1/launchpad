@@ -299,3 +299,235 @@ export async function pushScaffoldToRepo(
     await client.rest.git.createRef({ owner, repo, ref: "refs/heads/main", sha: commit.sha });
   }
 }
+
+export interface ParsedRepoRef {
+  owner: string;
+  repo: string;
+  input: string;
+}
+
+export function parseRepoUrl(input: string): ParsedRepoRef {
+  const trimmed = (input ?? "").trim().replace(/\/+$/, "");
+  if (!trimmed) throw new Error("Please enter a GitHub repository URL.");
+  const m = trimmed.match(/(?:github\.com\/|^)([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+)(?:\.git)?\/?$/);
+  if (!m) {
+    throw new Error(
+      "That doesn't look like a GitHub repository. Enter something like https://github.com/owner/repo"
+    );
+  }
+  return { owner: m[1], repo: m[2], input: trimmed };
+}
+
+export async function verifyRepoAccess(
+  client: Octokit,
+  owner: string,
+  repo: string
+): Promise<{ defaultBranch: string; private: boolean; title: string }> {
+  try {
+    const { data } = await client.rest.repos.get({ owner, repo });
+    return {
+      defaultBranch: data.default_branch ?? "main",
+      private: Boolean(data.private),
+      title: data.name || repo,
+    };
+  } catch (err) {
+    const status = (err as { status?: number }).status;
+    if (status === 404) throw new Error(`Repository "${owner}/${repo}" not found.`);
+    if (status === 401 || status === 403) {
+      throw new Error(
+        `No access to "${owner}/${repo}". The token needs repo scope, or the repo is private and the token can't read it.`
+      );
+    }
+    throw new Error(`Could not read "${owner}/${repo}".`);
+  }
+}
+
+const MAX_REPO_BYTES = 20 * 1024 * 1024;
+const MAX_TREE_ENTRIES = 4000;
+const IGNORED_PATHS = /(^|\/)(\.git|node_modules|\.next|dist|build|out|coverage|\.cache|\.venv|venv)(\/|$)/;
+
+export interface ImportedFile {
+  path: string;
+  content: string;
+  size: number;
+}
+
+export async function downloadRepo(
+  client: Octokit,
+  owner: string,
+  repo: string,
+  defaultBranch: string
+): Promise<{ files: ImportedFile[]; tree: Array<{ path: string; size: number }> }> {
+  const { data: treeData } = await client.rest.git.getTree({
+    owner,
+    repo,
+    tree_sha: defaultBranch,
+    recursive: "1",
+  });
+  const entries = (treeData.tree ?? []).filter((e) => e.type === "blob" && e.path);
+  if (entries.length > MAX_TREE_ENTRIES) {
+    throw new Error("This repository has too many files to analyze automatically.");
+  }
+
+  const tree = entries
+    .map((e) => ({ path: e.path as string, size: e.size ?? 0 }))
+    .filter((f) => !IGNORED_PATHS.test(f.path));
+
+  const totalPkg = tree.filter((f) => f.path === "package.json" || f.path === ".env.example").reduce((a, f) => a + (f.size || 0), 0);
+
+  const keyPaths = findKeyPaths(tree);
+  let total = totalPkg;
+  const selected: Array<{ path: string; size: number }> = [];
+  for (const f of keyPaths) {
+    if (total + f.size > MAX_REPO_BYTES) break;
+    total += f.size;
+    selected.push(f);
+  }
+
+  const files: ImportedFile[] = [];
+  for (const f of selected) {
+    if (f.path === ".env.example") {
+      files.push({ path: f.path, content: readEnvExamplePlaceholder(), size: f.size });
+      continue;
+    }
+    const res = await client.rest.repos.getContent({
+      owner,
+      repo,
+      path: f.path,
+      ref: defaultBranch,
+    });
+    const data = res.data as { type?: string; content?: string; size?: number; encoding?: string };
+    if (Array.isArray(res.data)) continue;
+    if (data.type !== "file" || !data.content) continue;
+    const content =
+      data.encoding === "base64"
+        ? Buffer.from(data.content, "base64").toString("utf8")
+        : data.content;
+    files.push({ path: f.path, content, size: data.size ?? 0 });
+  }
+
+  return { files, tree };
+}
+
+function findKeyPaths(tree: Array<{ path: string; size: number }>): Array<{ path: string; size: number }> {
+  const preferred = [
+    "package.json",
+    "package-lock.json",
+    "pnpm-lock.yaml",
+    "yarn.lock",
+    ".env.example",
+    "wrangler.toml",
+    "wrangler.jsonc",
+    "wrangler.json",
+    "next.config.js",
+    "next.config.mjs",
+    "next.config.ts",
+    "astro.config.mjs",
+    "astro.config.js",
+    "vite.config.ts",
+    "vite.config.js",
+    "tsconfig.json",
+    "requirements.txt",
+    "pyproject.toml",
+    "index.html",
+    "public/index.html",
+  ];
+  const picks: Array<{ path: string; size: number }> = [];
+  const picked = new Set<string>();
+  for (const p of preferred) {
+    const f = tree.find((x) => x.path === p);
+    if (f) {
+      picked.add(f.path);
+      picks.push(f);
+    }
+  }
+  for (const f of tree) {
+    if (picked.has(f.path)) continue;
+    const lower = f.path;
+    if (/^src\/|^lib\/|^app\//.test(lower) && /\.(ts|tsx|js|jsx|mjs|cjs|py)$/.test(f.path)) {
+      const rel = lower.split("/").pop() ?? "";
+      if (/^(index|main|worker|server|app)\.(ts|tsx|js|jsx|mjs|cjs|py)$/.test(rel)) {
+        picked.add(f.path);
+        picks.push(f);
+        if (picks.length >= 14) break;
+      }
+    }
+  }
+  for (const f of tree) {
+    if (picked.has(f.path)) continue;
+    if (/\.(md|txt)$/.test(f.path) && /^README/i.test(f.path.split("/").pop() ?? "")) {
+      picked.add(f.path);
+      picks.push(f);
+      if (picks.length >= 20) break;
+    }
+  }
+  return picks;
+}
+
+function readEnvExamplePlaceholder(): string {
+  return "# .env.example — variable names only; values are never read by Launchpad\n";
+}
+
+export interface ExistingAuthor {
+  name: string;
+  email: string;
+}
+
+export async function pushFilesToExistingRepo(
+  client: Octokit,
+  owner: string,
+  repo: string,
+  files: ScaffoldedFile[],
+  author: ExistingAuthor,
+  message: string,
+  branch: string
+): Promise<void> {
+  const { data: headRef } = await client.rest.git.getRef({
+    owner,
+    repo,
+    ref: `heads/${branch}`,
+  });
+  const headCommitSha = headRef.object.sha;
+  const { data: headCommit } = await client.rest.git.getCommit({
+    owner,
+    repo,
+    commit_sha: headCommitSha,
+  });
+
+  const baseTreeSha = headCommit.tree.sha;
+  const blobs: Array<{ path: string; mode: "100644"; type: "blob"; sha: string }> = [];
+  for (const file of files) {
+    const content = file.binary ? file.content : Buffer.from(file.content, "utf8").toString("base64");
+    const { data } = await client.rest.git.createBlob({
+      owner,
+      repo,
+      content,
+      encoding: "base64",
+    });
+    blobs.push({ path: file.path, mode: "100644", type: "blob", sha: data.sha });
+  }
+
+  const { data: tree } = await client.rest.git.createTree({
+    owner,
+    repo,
+    base_tree: baseTreeSha,
+    tree: blobs,
+  });
+
+  const { data: commit } = await client.rest.git.createCommit({
+    owner,
+    repo,
+    message,
+    tree: tree.sha,
+    parents: [headCommitSha],
+    author: { name: author.name, email: author.email },
+    committer: { name: author.name, email: author.email },
+  });
+
+  await client.rest.git.updateRef({
+    owner,
+    repo,
+    ref: `heads/${branch}`,
+    sha: commit.sha,
+  });
+}

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import type { TemplateCategory, TemplateInfo } from "@/lib/types";
+import type { TemplateCategory, TemplateInfo, ImportAnalysis } from "@/lib/types";
 import { CATEGORIES } from "@/lib/template-meta";
 
 interface LaunchPadProps {
@@ -33,6 +33,15 @@ export default function LaunchPad({ templates, envPatSet, envTokenSet, defaultAc
   const [category, setCategory] = useState<TemplateCategory | null>(deepLinked?.category ?? null);
   const [selected, setSelected] = useState<TemplateInfo | null>(deepLinked);
   const [details, setDetails] = useState<TemplateInfo | null>(null);
+
+  const [importMode, setImportMode] = useState(false);
+  const [importUrl, setImportUrl] = useState("");
+  const [importPat, setImportPat] = useState("");
+  const [importProjectName, setImportProjectName] = useState("");
+  const [analyzing, setAnalyzing] = useState(false);
+  const [analysis, setAnalysis] = useState<ImportAnalysis | null>(null);
+  const [importEnvValues, setImportEnvValues] = useState<Record<string, string>>({});
+  const [importing, setImporting] = useState(false);
 
   const [projectName, setProjectName] = useState("");
   const [route, setRoute] = useState("");
@@ -150,6 +159,350 @@ export default function LaunchPad({ templates, envPatSet, envTokenSet, defaultAc
     }
   }
 
+  async function handleAnalyze() {
+    setError(null);
+    if (!importUrl.trim()) {
+      setError("Paste a GitHub repository URL first.");
+      return;
+    }
+    if (!envPatSet && !importPat.trim()) {
+      setError("Enter a GitHub Personal Access Token (or set GITHUB_PAT in .env).");
+      return;
+    }
+    setAnalyzing(true);
+    setAnalysis(null);
+    try {
+      const res = await fetch("/api/import/analyse", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ url: importUrl.trim(), githubPat: importPat.trim() || undefined }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Analysis failed.");
+        setAnalyzing(false);
+        return;
+      }
+      setAnalysis(data.analysis);
+      const evs: Record<string, string> = {};
+      for (const v of data.analysis.plan?.envVars ?? []) evs[v.key] = "";
+      setImportEnvValues(evs);
+      setAnalyzing(false);
+    } catch {
+      setError("Network error. Please try again.");
+      setAnalyzing(false);
+    }
+  }
+
+  async function handleImportDeploy() {
+    setError(null);
+    if (!analysis?.plan) return;
+    if (!importProjectName.trim()) {
+      setError("Enter a project name.");
+      return;
+    }
+    if (!envPatSet && !importPat.trim()) {
+      setError("Enter a GitHub Personal Access Token (or set GITHUB_PAT in .env).");
+      return;
+    }
+    if (!cloudflareToken.trim() && !envTokenSet) {
+      setError("Enter a Cloudflare API token.");
+      return;
+    }
+    if (!accountId.trim() && !defaultAccountId) {
+      setError("Enter your Cloudflare account ID.");
+      return;
+    }
+    setImporting(true);
+    try {
+      const payload: {
+        url: string;
+        projectName: string;
+        plan: ImportAnalysis["plan"];
+        githubPat?: string;
+        cloudflareToken?: string;
+        accountId?: string;
+        envValues: Record<string, string>;
+      } = {
+        url: importUrl.trim(),
+        projectName: importProjectName.trim(),
+        plan: analysis.plan,
+        envValues: importEnvValues,
+      };
+      if (importPat.trim()) payload.githubPat = importPat.trim();
+      if (cloudflareToken.trim()) payload.cloudflareToken = cloudflareToken.trim();
+      if (accountId.trim()) payload.accountId = accountId.trim();
+      const res = await fetch("/api/import/deploy", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Deploy failed.");
+        setImporting(false);
+        return;
+      }
+      router.push("/projects");
+      router.refresh();
+    } catch {
+      setError("Network error. Please try again.");
+      setImporting(false);
+    }
+  }
+
+  const importBlockers = analysis?.detection?.blockers ?? [];
+
+  if (importMode) {
+    return (
+      <div className="flex flex-col gap-6">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-semibold text-white">Deploy an existing project</h2>
+            <p className="text-sm text-slate-400">
+              Paste a GitHub repository URL and we&rsquo;ll deploy it to Cloudflare for you.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setImportMode(false);
+              setAnalysis(null);
+              setError(null);
+              setStep(1);
+            }}
+            className="shrink-0 rounded-md border border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-300 hover:border-slate-500 hover:text-white"
+          >
+            ← Back
+          </button>
+        </div>
+
+        {!analysis && (
+          <div className="space-y-4">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-slate-300">
+                GitHub repository URL
+              </label>
+              <input
+                className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 outline-none focus:border-slate-500"
+                value={importUrl}
+                onChange={(e) => setImportUrl(e.target.value)}
+                placeholder="https://github.com/owner/repo"
+                autoCapitalize="none"
+                autoCorrect="off"
+              />
+              <p className="mt-1 text-[11px] text-slate-500">
+                The repo stays in place; Launchpad adds a deploy workflow and Cloudflare config to
+                it.
+              </p>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-medium text-slate-300">
+                GitHub Personal Access Token
+              </label>
+              <input
+                type="password"
+                className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 outline-none focus:border-slate-500"
+                value={importPat}
+                onChange={(e) => setImportPat(e.target.value)}
+                placeholder={envPatSet ? "Set via .env (optional here)" : "ghp_... (scopes: repo, workflow)"}
+                autoComplete="off"
+              />
+            </div>
+
+            {error && (
+              <div className="rounded-md border border-red-800 bg-red-950/50 px-3 py-2 text-sm text-red-300">
+                {error}
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={handleAnalyze}
+              disabled={analyzing}
+              className="w-full rounded-md bg-[#f6821f] px-4 py-2.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-[#ff9436] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {analyzing ? "Analyzing..." : "Analyze and plan the deploy"}
+            </button>
+          </div>
+        )}
+
+        {analysis && !analysis.plan && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <svg className="h-5 w-5 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 8v4M12 16h.01" />
+              </svg>
+              <span className="text-sm font-semibold text-amber-300">Hmm, this one needs a hand</span>
+            </div>
+            <div className="rounded-lg border border-slate-800 bg-slate-950/50 p-4 text-sm text-slate-300">
+              <p className="mb-2">{analysis.guidedFix?.reason}</p>
+              {importBlockers.length > 0 && (
+                <p className="mb-2 text-xs text-slate-400">
+                  Detected: <span className="text-slate-300">{importBlockers.join(", ")}</span>
+                </p>
+              )}
+              <div className="rounded-md border border-slate-800 bg-slate-900 p-3">
+                <span className="mb-1 block text-xs font-medium text-slate-400">
+                  Ask your AI tool to do this
+                </span>
+                <p className="whitespace-pre-wrap font-mono text-xs leading-relaxed text-slate-200">
+                  {analysis.guidedFix?.instruction}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setAnalysis(null);
+                setError(null);
+              }}
+              className="w-full rounded-md border border-slate-700 px-4 py-2.5 text-sm font-semibold text-slate-300 hover:border-slate-500 hover:text-white"
+            >
+              Analyze a different repo
+            </button>
+          </div>
+        )}
+
+        {analysis && analysis.plan && (
+          <div className="grid gap-8 lg:grid-cols-[1.2fr_1fr]">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-emerald-300">
+                  Ready to deploy
+                </span>
+                <span className="text-sm text-slate-400">
+                  {analysis.detection.framework ?? "App"} ·{" "}
+                  {analysis.plan.deployKind === "pages" ? "Cloudflare Pages" : "Cloudflare Workers"}
+                </span>
+              </div>
+
+              <div className="rounded-lg border border-slate-800 bg-slate-950/50 px-3.5 py-3">
+                <span className="mb-2 block text-xs font-medium text-slate-300">
+                  What Launchpad will do
+                </span>
+                <p className="text-sm text-slate-200">{analysis.plan.summary}</p>
+                {analysis.plan.notes.length > 0 && (
+                  <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-slate-400">
+                    {analysis.plan.notes.map((n) => (
+                      <li key={n}>{n}</li>
+                    ))}
+                  </ul>
+                )}
+                <dl className="mt-3 space-y-1.5 text-xs">
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-slate-500">Build command</dt>
+                    <dd className="truncate font-mono text-slate-200">{analysis.plan.buildCommand || "—"}</dd>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-slate-500">Deploy command</dt>
+                    <dd className="truncate font-mono text-slate-200">{analysis.plan.deployCommand}</dd>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-slate-500">Package manager</dt>
+                    <dd className="text-slate-200">{analysis.plan.packageManager ?? "—"}</dd>
+                  </div>
+                </dl>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-300">Project name</label>
+                <input
+                  className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 outline-none focus:border-slate-500"
+                  value={importProjectName}
+                  onChange={(e) => setImportProjectName(e.target.value)}
+                  placeholder={analysis.repoTitle ?? "my-app"}
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                />
+                <p className="mt-1 text-[11px] text-slate-500">
+                  Used as the Cloudflare project/worker name.
+                </p>
+              </div>
+
+              {analysis.plan.envVars.length > 0 && (
+                <div className="rounded-lg border border-slate-800 bg-slate-950/50 px-3.5 py-3">
+                  <span className="mb-2 block text-xs font-medium text-slate-300">
+                    Environment values
+                  </span>
+                  <p className="mb-2 text-[11px] text-slate-500">
+                    Optional. These are stored as GitHub repo secrets and used by the deploy.
+                  </p>
+                  <div className="space-y-2">
+                    {analysis.plan.envVars.map((v) => (
+                      <div key={v.key}>
+                        <label className="mb-0.5 block text-[11px] font-medium text-slate-400">
+                          {v.key}
+                        </label>
+                        <input
+                          type={v.kind === "secret" ? "password" : "text"}
+                          className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-1.5 text-sm text-slate-100 placeholder:text-slate-500 outline-none focus:border-slate-500"
+                          value={importEnvValues[v.key] ?? ""}
+                          onChange={(e) =>
+                            setImportEnvValues((prev) => ({ ...prev, [v.key]: e.target.value }))
+                          }
+                          placeholder={v.kind === "secret" ? "Leave blank to keep empty" : ""}
+                          autoComplete="off"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {error && (
+                <div className="rounded-md border border-red-800 bg-red-950/50 px-3 py-2 text-sm text-red-300">
+                  {error}
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={handleImportDeploy}
+                disabled={importing}
+                className="w-full rounded-md bg-[#f6821f] px-4 py-2.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-[#ff9436] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {importing ? "Deploying..." : "Looks good, deploy →"}
+              </button>
+            </div>
+
+            <div className="lg:sticky lg:top-8 lg:self-start">
+              <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
+                <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-slate-400">
+                  Repo summary
+                </h2>
+                <dl className="space-y-3 text-xs">
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-slate-500">Repo</dt>
+                    <dd className="truncate text-slate-200" title={importUrl}>
+                      {analysis.repoTitle}
+                    </dd>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-slate-500">Branch</dt>
+                    <dd className="text-slate-200">{analysis.defaultBranch}</dd>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-slate-500">Files analyzed</dt>
+                    <dd className="text-slate-200">{analysis.files.length}</dd>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-slate-500">Deploy target</dt>
+                    <dd className="text-slate-200">
+                      {analysis.plan.deployKind === "pages" ? "Cloudflare Pages" : "Cloudflare Workers"}
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   const templateStack = (t: TemplateInfo) => {
     const parts = [];
     if (t.deploy?.runtime) parts.push(t.deploy.runtime);
@@ -162,6 +515,24 @@ export default function LaunchPad({ templates, envPatSet, envTokenSet, defaultAc
       <div className="flex flex-col gap-8">
         <h1 className="text-2xl font-semibold text-white">Launch a new app</h1>
         <p className="text-slate-400">Choose a language and framework to get started.</p>
+        <div
+          className="flex flex-col rounded-xl border border-[#f6821f]/40 bg-[#f6821f]/5 p-4 transition-colors hover:border-[#f6821f] cursor-pointer"
+          onClick={() => {
+            setImportMode(true);
+            setError(null);
+          }}
+        >
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-sm font-semibold text-white">Deploy an existing project</span>
+            <span className="shrink-0 rounded-full bg-[#f6821f]/20 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-[#f6821f]">
+              New
+            </span>
+          </div>
+          <p className="mt-1 text-xs text-slate-400">
+            Paste a GitHub URL from an app you (or your AI) already built. Launchpad analyzes it and
+            deploys it to Cloudflare — with nothing to configure.
+          </p>
+        </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {CATEGORIES.map((cat) => (
             <div

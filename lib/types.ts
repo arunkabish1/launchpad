@@ -106,6 +106,7 @@ export interface Project {
   serviceBindings?: ServiceBinding[];
   previewEnabled?: boolean;
   previewKeyEnc?: string;
+  imported?: boolean;
 }
 
 export interface StoredEnvVar {
@@ -215,4 +216,55 @@ export interface ProjectDetail {
   project: Project;
   status: ProjectStatusResult;
   template: TemplateInfo;
+}
+
+export type ImportDeployKind = "static" | "worker" | "pages" | "needs-adaptation" | "unsupported";
+
+export interface DetectedEnvVar {
+  key: string;
+  kind: "secret" | "text";
+}
+
+export interface Detection {
+  framework: string | null;
+  deployKind: ImportDeployKind;
+  buildCommand: string;
+  outputDir: string | null;
+  runtime: "node" | "python" | "other";
+  packageManager: string | null;
+  hasLockfile: boolean;
+  alreadyHasCloudflareConfig: boolean;
+  envVars: DetectedEnvVar[];
+  serverOnlyDeps: string[];
+  blockers: string[];
+}
+
+export interface DeployPlan {
+  deployKind: ImportDeployKind;
+  framework: string | null;
+  buildCommand: string;
+  outputDir: string | null;
+  deployCommand: string;
+  packageManager: string | null;
+  runtime: "node" | "python" | "other";
+  envVars: DetectedEnvVar[];
+  alreadyHasCloudflareConfig: boolean;
+  summary: string;
+  notes: string[];
+  model: string;
+}
+
+export interface GuidedFix {
+  reason: string;
+  instruction: string;
+  effort: "easy" | "medium" | "hard";
+}
+
+export interface ImportAnalysis {
+  detection: Detection;
+  plan: DeployPlan | null;
+  guidedFix: GuidedFix | null;
+  files: string[];
+  defaultBranch: string;
+  repoTitle: string;
 }

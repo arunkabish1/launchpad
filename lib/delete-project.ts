@@ -22,7 +22,7 @@ export async function deleteProjectResources(
   options: DeleteProjectOptions
 ): Promise<DeleteProjectResult> {
   const {
-    deleteRepo: removeRepo = true,
+    deleteRepo: requestedRepo = !project.imported,
     deleteCloudflare: removeCf = true,
     deleteAws: removeAws = true,
   } = options;
@@ -30,6 +30,10 @@ export async function deleteProjectResources(
   let repoDeleted = false;
   let cloudflareDeleted = false;
   let awsDeleted = false;
+
+  // Imported projects keep their GitHub source repo by default; the caller can
+  // opt in to deleting it explicitly via deleteRepo: true.
+  const removeRepo = options.deleteRepo !== undefined ? options.deleteRepo : requestedRepo;
 
   if (removeRepo) {
     const pat = await resolvePat(project.id);
