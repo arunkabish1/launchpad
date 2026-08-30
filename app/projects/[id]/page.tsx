@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { getProject } from "@/lib/store";
 import { getTemplate, templateStack } from "@/lib/templates";
 import { deriveLiveUrl } from "@/lib/cf";
-import { resolvePat, getProjectStatus } from "@/lib/status";
+import { resolvePat, getProjectStatus, resolveProjectLiveUrl } from "@/lib/status";
 import ProjectPanel from "../../components/project-panel";
 
 export const dynamic = "force-dynamic";
@@ -14,6 +14,8 @@ export default async function ProjectDetailPage({ params }: PageProps<"/projects
   if (!project) notFound();
 
   const template = getTemplate(project.templateId);
+
+  const liveUrl = (await resolveProjectLiveUrl(project).catch(() => null)) ?? deriveLiveUrl(project);
 
   const pat = await resolvePat(project.id);
   let initialStatus: Awaited<ReturnType<typeof getProjectStatus>> | null = null;
@@ -42,7 +44,7 @@ export default async function ProjectDetailPage({ params }: PageProps<"/projects
         requiresRoute: template?.requiresRoute ?? false,
         fileCount: template?.files.length ?? 0,
       }}
-      liveUrl={deriveLiveUrl(project)}
+      liveUrl={liveUrl}
       initialStatus={initialStatus}
       initialError={statusError}
     />

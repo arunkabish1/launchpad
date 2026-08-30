@@ -215,6 +215,7 @@ export default function ProjectPanel({
   const meta = getStatusMeta(status?.status);
   const latest = status?.latest;
   const runs = status?.runs ?? [];
+  const displayLiveUrl = status?.liveUrl ?? liveUrl;
 
   const typeBadge =
     project.type === "pages"
@@ -299,9 +300,9 @@ export default function ProjectPanel({
 
             {/* Right: actions */}
             <div className="flex flex-wrap items-center gap-2">
-              {liveUrl && (
+              {displayLiveUrl && (
                 <a
-                  href={liveUrl}
+                  href={displayLiveUrl}
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#f6821f] px-4 text-sm font-semibold text-white shadow-[0_2px_12px_rgba(246,130,31,0.35)] transition-all hover:bg-[#ff9436] hover:shadow-[0_4px_20px_rgba(246,130,31,0.5)]"
@@ -310,7 +311,7 @@ export default function ProjectPanel({
                   <IconExternal className="h-3.5 w-3.5" />
                 </a>
               )}
-              {liveUrl && <CopyButton text={liveUrl} iconOnly />}
+              {displayLiveUrl && <CopyButton text={displayLiveUrl} iconOnly />}
               <button
                 type="button"
                 id="redeploy-btn"
@@ -462,14 +463,14 @@ export default function ProjectPanel({
                       Live URL
                     </p>
                     <div className="flex min-w-0 items-center gap-2">
-                      {liveUrl ? (
+                      {displayLiveUrl ? (
                         <>
                           <code className="truncate font-mono text-sm text-[#f6821f]">
-                            {liveUrl}
+                            {displayLiveUrl}
                           </code>
-                          <CopyButton text={liveUrl} iconOnly />
+                          <CopyButton text={displayLiveUrl} iconOnly />
                           <a
-                            href={liveUrl}
+                            href={displayLiveUrl}
                             target="_blank"
                             rel="noreferrer"
                             className="inline-flex shrink-0 items-center gap-1 text-xs text-slate-500 transition-colors hover:text-[#f6821f]"

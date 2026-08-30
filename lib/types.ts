@@ -130,6 +130,7 @@ export interface ProjectStatusResult {
   status: ProjectStatus;
   totalRuns: number;
   runs: DeployRun[];
+  liveUrl?: string | null;
   error?: string;
 }
 

@@ -219,7 +219,7 @@ export async function getLambdaStackOutputs(
   projectName: string
 ): Promise<Record<string, string>> {
   const body = JSON.stringify({
-    StackName: `launchpad-${projectName}`,
+    StackName: projectName,
   });
   const res = await awsFetch(creds, {
     method: "POST",
@@ -270,7 +270,7 @@ export async function deleteAwsProject(
     if (!res.ok) throw apiError(res, "Failed to delete Amplify app");
     return;
   }
-  const body = JSON.stringify({ StackName: `launchpad-${name}` });
+  const body = JSON.stringify({ StackName: name });
   const res = await awsFetch(creds, {
     method: "POST",
     service: "cloudformation",

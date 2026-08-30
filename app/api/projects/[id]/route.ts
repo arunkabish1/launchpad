@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getProject, removeProject } from "@/lib/store";
 import { getTemplate } from "@/lib/templates";
-import { resolvePat, getProjectStatus, forgetPat } from "@/lib/status";
+import { resolvePat, getProjectStatus, forgetPat, resolveProjectLiveUrl } from "@/lib/status";
 import { deleteProjectResources } from "@/lib/delete-project";
 import { requireAuth, authRequiredResponse, verifyOrigin } from "@/lib/auth";
 import { recordAudit } from "@/lib/audit";
@@ -22,11 +22,14 @@ export async function GET(req: NextRequest, ctx: RouteContext<"/api/projects/[id
 
   const template = getTemplate(project.templateId);
 
+  const patch = await resolveProjectLiveUrl(project);
+
   const pat = await resolvePat(project.id);
   let statusResult = null;
   if (pat) {
     try {
       statusResult = await getProjectStatus(project.owner, project.repo, pat);
+      statusResult.liveUrl = patch ?? statusResult.liveUrl ?? null;
     } catch (err) {
       statusResult = {
         latest: null,

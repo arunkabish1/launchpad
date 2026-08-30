@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getProject } from "@/lib/store";
-import { resolvePat, getProjectStatus } from "@/lib/status";
+import { resolvePat, getProjectStatus, resolveProjectLiveUrl } from "@/lib/status";
 import { requireAuth, authRequiredResponse } from "@/lib/auth";
 
 export const runtime = "nodejs";
@@ -26,6 +26,7 @@ export async function GET(req: NextRequest, ctx: RouteContext<"/api/projects/[id
 
   try {
     const status = await getProjectStatus(project.owner, project.repo, pat);
+    status.liveUrl = await resolveProjectLiveUrl(project);
     return NextResponse.json(status);
   } catch (err) {
     return NextResponse.json(

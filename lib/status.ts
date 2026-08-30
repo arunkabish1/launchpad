@@ -2,7 +2,8 @@ import { createClient, listWorkflowRuns } from "./github";
 import { getEnvPat } from "./config";
 import { encrypt, decrypt, hasSecretKey } from "./crypto";
 import { updateProject, getProject } from "./store";
-import type { DeployRun, ProjectStatus, ProjectStatusResult } from "./types";
+import { getLambdaUrl, getAmplifyDefaultDomain, resolveAwsCredentials } from "./aws";
+import type { DeployRun, Project, ProjectStatus, ProjectStatusResult } from "./types";
 
 const patsByProject = new Map<string, string>();
 
@@ -75,4 +76,19 @@ export async function getProjectStatus(
     totalRuns: runs.length,
     runs,
   };
+}
+
+export async function resolveProjectLiveUrl(project: Project): Promise<string | null> {
+  if (project.provider !== "aws") return project.liveUrl ?? null;
+  const creds = await resolveAwsCredentials(project);
+  if (!creds) return null;
+  try {
+    if (project.type === "amplify") {
+      return await getAmplifyDefaultDomain(creds, project.name);
+    }
+    return await getLambdaUrl(creds, project.name);
+  } catch (err) {
+    console.error("Failed to resolve AWS live URL for project", project.id, err);
+    return null;
+  }
 }
