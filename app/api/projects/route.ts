@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { listProjects } from "@/lib/store";
 import { launchProject, LaunchError } from "@/lib/launch";
+import { getTemplate } from "@/lib/templates";
 import { requireAuth, authRequiredResponse, verifyOrigin } from "@/lib/auth";
 import type { LaunchRequest } from "@/lib/types";
 
@@ -24,6 +25,14 @@ export async function POST(request: NextRequest) {
     body = (await request.json()) as LaunchRequest;
   } catch {
     return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
+  }
+
+  const template = getTemplate(body.templateId);
+  if (!template) {
+    return NextResponse.json({ error: "Template not found." }, { status: 404 });
+  }
+  if (template.provider === "aws" && template.type === "amplify") {
+    return NextResponse.json({ error: "AWS Amplify templates are not yet available (Coming Soon)." }, { status: 400 });
   }
 
   try {

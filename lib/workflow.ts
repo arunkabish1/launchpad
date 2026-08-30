@@ -191,20 +191,37 @@ function awsSetupSteps(template: TemplateInfo, hasLockfile: boolean): string {
 `;
   }
   const setup = template.deploy?.setup ?? "";
-  if (!setup) {
-    return `      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-`;
-  }
-  const runCmd = hasLockfile ? setup.replace("npm install", "npm ci") : setup;
-  const cacheLine = hasLockfile ? "          cache: npm\n" : "";
-  return `      - uses: actions/setup-node@v4
+  // Lambda templates compile locally (e.g. esbuild -> dist/) so SAM can find the
+  // built artifact; SAM uses CodeUri: dist/ in template.yaml.
+  // Amplify builds in the cloud, so we don't pre-build there.
+  const buildCmd =
+    template.type === "lambda" && (template.buildCommand ?? "").trim()
+      ? (template.buildCommand as string).trim()
+      : "";
+
+  let steps = "";
+  if (setup) {
+    const runCmd = hasLockfile ? setup.replace("npm install", "npm ci") : setup;
+    const cacheLine = hasLockfile ? "          cache: npm\n" : "";
+    steps += `      - uses: actions/setup-node@v4
         with:
           node-version: 22
 ${cacheLine}
       - run: ${runCmd}
 `;
+  } else {
+    steps += `      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+`;
+  }
+
+  if (buildCmd) {
+    steps += `      - run: ${buildCmd}
+`;
+  }
+
+  return steps;
 }
 
 function awsConfigureStep(): string {

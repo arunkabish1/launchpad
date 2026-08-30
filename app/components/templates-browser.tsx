@@ -10,9 +10,12 @@ interface TemplatesBrowserProps {
 }
 
 const platformLabel = (t: TemplateInfo) => {
-  if (t.provider === "aws") return t.type === "amplify" ? "AWS Amplify" : "AWS Lambda";
+  if (t.provider === "aws" && t.type === "amplify") return "AWS Amplify (Coming Soon)";
+  if (t.provider === "aws") return "AWS Lambda";
   return t.type === "pages" ? "Cloudflare Pages" : "Cloudflare Workers";
 };
+
+const isAmplify = (t: TemplateInfo) => t.provider === "aws" && t.type === "amplify";
 
 export default function TemplatesBrowser({ templates }: TemplatesBrowserProps) {
   const [selected, setSelected] = useState<TemplateInfo | null>(null);
@@ -42,12 +45,17 @@ export default function TemplatesBrowser({ templates }: TemplatesBrowserProps) {
             </div>
             <p className="mt-1.5 flex-1 text-xs leading-relaxed text-slate-400">{t.description}</p>
             <div className="mt-3 flex flex-wrap items-center gap-1.5">
-              {t.source === "c3" && (
-                <span className="rounded-full bg-sky-500/15 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-sky-300">
-                  create-cloudflare
-                </span>
-              )}
-              <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-300">
+{t.source === "c3" && (
+                  <span className="rounded-full bg-sky-500/15 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-sky-300">
+                    create-cloudflare
+                  </span>
+                )}
+                {isAmplify(t) && (
+                  <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-300">
+                    coming soon
+                  </span>
+                )}
+                <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-300">
                 {CATEGORIES.find((c) => c.id === t.category)?.label ?? t.category}
               </span>
               <span className="rounded-full bg-slate-800/60 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-400">
@@ -62,9 +70,12 @@ export default function TemplatesBrowser({ templates }: TemplatesBrowserProps) {
             <button
               type="button"
               onClick={() => setSelected(t)}
-              className="mt-4 w-full rounded-md border border-slate-700 px-3 py-2 text-xs font-semibold text-slate-200 transition-colors hover:border-[#f6821f] hover:text-[#f6821f]"
+              disabled={isAmplify(t)}
+              className={isAmplify(t)
+                ? "mt-4 w-full rounded-md border px-3 py-2 text-xs font-semibold transition-colors border-slate-700 text-slate-500 cursor-not-allowed"
+                : "mt-4 w-full rounded-md border border-slate-700 px-3 py-2 text-xs font-semibold transition-colors hover:border-[#f6821f] hover:text-[#f6821f]"}
             >
-              View details
+              {isAmplify(t) ? "Coming Soon" : "View details"}
             </button>
           </div>
         ))}
