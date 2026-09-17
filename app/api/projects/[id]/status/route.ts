@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getProject } from "@/lib/store";
 import { resolvePat, getProjectStatus, resolveProjectLiveUrl } from "@/lib/status";
+import { applyPendingConfig } from "@/lib/runtime-config";
 import { requireAuth, authRequiredResponse } from "@/lib/auth";
 
 export const runtime = "nodejs";
@@ -27,6 +28,9 @@ export async function GET(req: NextRequest, ctx: RouteContext<"/api/projects/[id
   try {
     const status = await getProjectStatus(project.owner, project.repo, pat);
     status.liveUrl = await resolveProjectLiveUrl(project);
+    if (status.status === "success") {
+      await applyPendingConfig(project, status).catch(() => {});
+    }
     return NextResponse.json(status);
   } catch (err) {
     return NextResponse.json(

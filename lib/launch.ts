@@ -20,7 +20,8 @@ import { encrypt, hasSecretKey } from "./crypto";
 import { renderPreviewWorkflow, renderDeployWorkflow } from "./workflow";
 import { getPreviewScript, getProvisionScript } from "./template-assets";
 import { encryptEnvValues } from "./preview";
-import type { LaunchRequest, Project } from "./types";
+import { applyLaunchConfig } from "./launch-config";
+import type { LaunchRequest, Project, StoredEnvVar } from "./types";
 
 const NAME_REGEX = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
 const LOCKFILES = new Set(["package-lock.json", "npm-shrinkwrap.json", "yarn.lock", "pnpm-lock.yaml"]);
@@ -74,8 +75,12 @@ export async function launchProject(request: LaunchRequest): Promise<Project> {
     if (!accountId) throw new LaunchError("A Cloudflare account ID is required.");
   }
 
+  const cfg = request.config;
+  const isWorker = template.type === "worker";
+  const previewOn = provider === "cloudflare" && isWorker && cfg?.previewEnabled !== false;
+  const provisionOn = provider === "cloudflare" && isWorker && cfg?.provisionEnabled !== false;
   const previewMasterKey =
-    template.type === "worker" ? crypto.randomBytes(32).toString("base64") : null;
+    previewOn || provisionOn ? crypto.randomBytes(32).toString("base64") : null;
 
   const files = buildScaffoldFiles(template, { projectName, route });
   const hasLockfile = files.some((f) => LOCKFILES.has(f.path.split("/").pop() ?? ""));
@@ -86,26 +91,31 @@ export async function launchProject(request: LaunchRequest): Promise<Project> {
       content: renderDeployWorkflow(template, {
         projectName,
         hasLockfile,
-        provision: template.type !== "pages",
+        provision: provisionOn,
       }),
     });
   }
 
   if (previewMasterKey) {
-    const injected: ScaffoldedFile[] = [
-      {
-        path: ".launchpad/preview.mjs",
-        content: getPreviewScript(),
-      },
-      {
+    const injected: ScaffoldedFile[] = [];
+    if (previewOn) {
+      injected.push(
+        {
+          path: ".launchpad/preview.mjs",
+          content: getPreviewScript(),
+        },
+        {
+          path: ".github/workflows/preview.yml",
+          content: renderPreviewWorkflow(template, { projectName, hasLockfile }),
+        }
+      );
+    }
+    if (provisionOn) {
+      injected.push({
         path: ".launchpad/provision.mjs",
         content: getProvisionScript(),
-      },
-      {
-        path: ".github/workflows/preview.yml",
-        content: renderPreviewWorkflow(template, { projectName, hasLockfile }),
-      },
-    ];
+      });
+    }
     if (hasSecretKey()) {
       injected.push({
         path: ".launchpad/env-values.enc",
@@ -118,6 +128,15 @@ export async function launchProject(request: LaunchRequest): Promise<Project> {
       path: ".github/workflows/preview.yml",
       content: renderPreviewWorkflow(template, { projectName, hasLockfile }),
     });
+  }
+
+  let launchEnvVars: StoredEnvVar[] = [];
+  if (provider === "cloudflare" && (cfg?.bindings?.length || cfg?.envVars?.length)) {
+    try {
+      launchEnvVars = await applyLaunchConfig(files, cfg, cloudflareToken, accountId);
+    } catch (err) {
+      throw new LaunchError((err as Error).message);
+    }
   }
 
   try {
@@ -221,8 +240,9 @@ export async function launchProject(request: LaunchRequest): Promise<Project> {
       githubUrl: repoInfo.htmlUrl,
       createdAt: new Date().toISOString(),
       liveUrl,
-      previewEnabled: template.type === "worker" || (provider === "aws" && template.type === "amplify"),
+      previewEnabled: provider === "aws" ? template.type === "amplify" : previewOn,
       ...(previewKeyEnc ? { previewKeyEnc } : {}),
+      ...(launchEnvVars.length ? { envVars: launchEnvVars, configApplied: false } : {}),
       ...(provider === "aws" ? { awsRegion } : {}),
       ...(awsAccessKeyEnc ? { awsAccessKeyEnc } : {}),
       ...(awsSecretKeyEnc ? { awsSecretKeyEnc } : {}),

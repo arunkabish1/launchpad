@@ -1,6 +1,7 @@
 import { parse as parseToml, stringify as stringifyToml } from "smol-toml";
 import { Octokit } from "@octokit/rest";
 import { getUser } from "./github";
+import type { ScaffoldedFile } from "./scaffold";
 import type { Binding, BindingResource, BindingType } from "./types";
 
 const CF_API_BASE = "https://api.cloudflare.com/client/v4";
@@ -266,6 +267,16 @@ export type WranglerKind = "toml" | "json";
 export interface WranglerConfigRef {
   path: string;
   kind: WranglerKind;
+}
+
+export function findScaffoldWrangler(files: ScaffoldedFile[]): WranglerConfigRef | null {
+  const candidates = ["wrangler.toml", "wrangler.jsonc", "wrangler.json"];
+  for (const c of candidates) {
+    if (files.some((f) => f.path === c)) {
+      return { path: c, kind: c.endsWith(".toml") ? "toml" : "json" };
+    }
+  }
+  return null;
 }
 
 export async function findWranglerConfig(

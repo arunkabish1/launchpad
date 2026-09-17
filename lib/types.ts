@@ -107,6 +107,7 @@ export interface Project {
   previewEnabled?: boolean;
   previewKeyEnc?: string;
   imported?: boolean;
+  configApplied?: boolean;
 }
 
 export interface StoredEnvVar {
@@ -187,7 +188,8 @@ export type AuditAction =
   | "preview_enable"
   | "preview_disable"
   | "provision_enable"
-  | "provision_disable";
+  | "provision_disable"
+  | "config_applied";
 
 export interface AuditEntry {
   at: string;
@@ -196,6 +198,25 @@ export interface AuditEntry {
   project: string;
   detail: string;
   outcome: "ok" | "error";
+}
+
+export interface LaunchBindingConfig {
+  type: Exclude<BindingType, "turnstile">;
+  name: string;
+  resource: string;
+}
+
+export interface LaunchEnvVarConfig {
+  key: string;
+  value: string;
+  kind: "secret" | "text";
+}
+
+export interface LaunchConfig {
+  envVars?: LaunchEnvVarConfig[];
+  bindings?: LaunchBindingConfig[];
+  previewEnabled?: boolean;
+  provisionEnabled?: boolean;
 }
 
 export interface LaunchRequest {
@@ -209,6 +230,7 @@ export interface LaunchRequest {
   awsAccessKey?: string;
   awsSecretKey?: string;
   awsRegion?: string;
+  config?: LaunchConfig;
   actor?: string;
 }
 

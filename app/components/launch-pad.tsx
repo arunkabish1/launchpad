@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import type { TemplateCategory, TemplateInfo, ImportAnalysis } from "@/lib/types";
+import type { TemplateCategory, TemplateInfo, ImportAnalysis, LaunchConfig } from "@/lib/types";
 import { CATEGORIES } from "@/lib/template-meta";
 
 interface LaunchPadProps {
@@ -16,6 +16,16 @@ interface LaunchPadProps {
 }
 
 type Step = 1 | 2 | 3;
+
+type LaunchEnvVarRow = { key: string; value: string; kind: "secret" | "text" };
+type LaunchBindingRow = { type: "kv" | "d1" | "r2" | "ai_search"; name: string; resource: string };
+
+const BINDING_TYPE_OPTIONS: Array<{ value: LaunchBindingRow["type"]; label: string }> = [
+  { value: "kv", label: "KV" },
+  { value: "d1", label: "D1" },
+  { value: "r2", label: "R2" },
+  { value: "ai_search", label: "AI Search" },
+];
 
 const platformLabel = (t: TemplateInfo) => {
   if (t.provider === "aws") return t.type === "amplify" ? "AWS Amplify" : "AWS Lambda";
@@ -52,6 +62,11 @@ export default function LaunchPad({ templates, envPatSet, envTokenSet, defaultAc
   const [awsAccessKey, setAwsAccessKey] = useState("");
   const [awsSecretKey, setAwsSecretKey] = useState("");
   const [awsRegion, setAwsRegion] = useState("");
+
+  const [launchEnvVars, setLaunchEnvVars] = useState<LaunchEnvVarRow[]>([]);
+  const [launchBindings, setLaunchBindings] = useState<LaunchBindingRow[]>([]);
+  const [previewEnabled, setPreviewEnabled] = useState(true);
+  const [provisionEnabled, setProvisionEnabled] = useState(true);
 
   const isAmplify = selected?.provider === "aws" && selected?.type === "amplify";
 
@@ -124,6 +139,7 @@ export default function LaunchPad({ templates, envPatSet, envTokenSet, defaultAc
         awsAccessKey?: string;
         awsSecretKey?: string;
         awsRegion?: string;
+        config?: LaunchConfig;
       } = {
         templateId: selected.id,
         projectName: projectName.trim(),
@@ -138,6 +154,16 @@ export default function LaunchPad({ templates, envPatSet, envTokenSet, defaultAc
       } else {
         if (cloudflareToken.trim()) payload.cloudflareToken = cloudflareToken.trim();
         if (accountId.trim()) payload.accountId = accountId.trim();
+        payload.config = {
+          envVars: launchEnvVars
+            .filter((v) => v.key.trim())
+            .map((v) => ({ key: v.key.trim(), value: v.value, kind: v.kind })),
+          bindings: launchBindings
+            .filter((b) => b.name.trim() && b.resource.trim())
+            .map((b) => ({ type: b.type, name: b.name.trim(), resource: b.resource.trim() })),
+          previewEnabled,
+          provisionEnabled,
+        };
       }
 
       const res = await fetch("/api/projects", {
@@ -999,6 +1025,213 @@ export default function LaunchPad({ templates, envPatSet, envTokenSet, defaultAc
                   />
                 </div>
               </>
+            )}
+
+            {selected.provider === "cloudflare" && (
+              <div className="rounded-lg border border-slate-800 bg-slate-950/50 p-4">
+                <div className="mb-3 flex items-center justify-between">
+                  <span className="text-xs font-medium text-slate-300">Resources &amp; config</span>
+                  <span className="text-[10px] uppercase tracking-wide text-slate-500">optional</span>
+                </div>
+
+                {selected.files.some((f) => f === "wrangler.toml" || f === "wrangler.jsonc" || f === "wrangler.json") && (
+                  <div className="mb-4">
+                    <div className="mb-2 flex items-center justify-between">
+                      <span className="text-[11px] font-medium text-slate-400">Bindings</span>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setLaunchBindings((prev) => [...prev, { type: "kv", name: "", resource: "" }])
+                        }
+                        className="rounded-md border border-slate-700 px-2 py-1 text-[11px] font-medium text-slate-300 hover:border-slate-500 hover:text-white"
+                      >
+                        + Add binding
+                      </button>
+                    </div>
+                    {launchBindings.length === 0 ? (
+                      <p className="text-[11px] text-slate-500">
+                        Add KV, D1, R2, or AI Search bindings. The resource is created on the account
+                        if it does not exist.
+                      </p>
+                    ) : (
+                      <div className="space-y-2">
+                        {launchBindings.map((b, i) => (
+                          <div
+                            key={i}
+                            className="grid grid-cols-[92px_1fr_1fr_auto] items-center gap-2"
+                          >
+                            <select
+                              value={b.type}
+                              onChange={(e) =>
+                                setLaunchBindings((prev) =>
+                                  prev.map((row, j) =>
+                                    j === i
+                                      ? { ...row, type: e.target.value as LaunchBindingRow["type"] }
+                                      : row
+                                  )
+                                )
+                              }
+                              className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-slate-100 outline-none focus:border-slate-500"
+                            >
+                              {BINDING_TYPE_OPTIONS.map((o) => (
+                                <option key={o.value} value={o.value}>
+                                  {o.label}
+                                </option>
+                              ))}
+                            </select>
+                            <input
+                              value={b.name}
+                              onChange={(e) =>
+                                setLaunchBindings((prev) =>
+                                  prev.map((row, j) =>
+                                    j === i ? { ...row, name: e.target.value } : row
+                                  )
+                                )
+                              }
+                              placeholder="BINDING_NAME"
+                              className="w-full rounded-md border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-slate-100 placeholder:text-slate-500 outline-none focus:border-slate-500"
+                              autoCapitalize="none"
+                              autoCorrect="off"
+                            />
+                            <input
+                              value={b.resource}
+                              onChange={(e) =>
+                                setLaunchBindings((prev) =>
+                                  prev.map((row, j) =>
+                                    j === i ? { ...row, resource: e.target.value } : row
+                                  )
+                                )
+                              }
+                              placeholder="resource-name"
+                              className="w-full rounded-md border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-slate-100 placeholder:text-slate-500 outline-none focus:border-slate-500"
+                              autoCapitalize="none"
+                              autoCorrect="off"
+                            />
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setLaunchBindings((prev) => prev.filter((_, j) => j !== i))
+                              }
+                              aria-label="Remove binding"
+                              className="rounded-md border border-slate-700 px-2 py-1.5 text-xs text-slate-400 hover:border-red-800 hover:text-red-300"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="mb-4">
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="text-[11px] font-medium text-slate-400">
+                      Environment variables
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setLaunchEnvVars((prev) => [...prev, { key: "", value: "", kind: "secret" }])
+                      }
+                      className="rounded-md border border-slate-700 px-2 py-1 text-[11px] font-medium text-slate-300 hover:border-slate-500 hover:text-white"
+                    >
+                      + Add variable
+                    </button>
+                  </div>
+                  {launchEnvVars.length === 0 ? (
+                    <p className="text-[11px] text-slate-500">
+                      Values are stored encrypted and applied to the project once the first deploy
+                      succeeds.
+                    </p>
+                  ) : (
+                    <div className="space-y-2">
+                      {launchEnvVars.map((v, i) => (
+                        <div
+                          key={i}
+                          className="grid grid-cols-[1fr_86px_1fr_auto] items-center gap-2"
+                        >
+                          <input
+                            value={v.key}
+                            onChange={(e) =>
+                              setLaunchEnvVars((prev) =>
+                                prev.map((row, j) => (j === i ? { ...row, key: e.target.value } : row))
+                              )
+                            }
+                            placeholder="KEY"
+                            className="w-full rounded-md border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-slate-100 placeholder:text-slate-500 outline-none focus:border-slate-500"
+                            autoCapitalize="none"
+                            autoCorrect="off"
+                          />
+                          <select
+                            value={v.kind}
+                            onChange={(e) =>
+                              setLaunchEnvVars((prev) =>
+                                prev.map((row, j) =>
+                                  j === i
+                                    ? { ...row, kind: e.target.value as LaunchEnvVarRow["kind"] }
+                                    : row
+                                )
+                              )
+                            }
+                            className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-slate-100 outline-none focus:border-slate-500"
+                          >
+                            <option value="secret">Secret</option>
+                            <option value="text">Text</option>
+                          </select>
+                          <input
+                            type={v.kind === "secret" ? "password" : "text"}
+                            value={v.value}
+                            onChange={(e) =>
+                              setLaunchEnvVars((prev) =>
+                                prev.map((row, j) =>
+                                  j === i ? { ...row, value: e.target.value } : row
+                                )
+                              )
+                            }
+                            placeholder="value"
+                            className="w-full rounded-md border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-slate-100 placeholder:text-slate-500 outline-none focus:border-slate-500"
+                            autoComplete="off"
+                          />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setLaunchEnvVars((prev) => prev.filter((_, j) => j !== i))
+                            }
+                            aria-label="Remove variable"
+                            className="rounded-md border border-slate-700 px-2 py-1.5 text-xs text-slate-400 hover:border-red-800 hover:text-red-300"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {selected.type === "worker" && (
+                  <div className="space-y-2 border-t border-slate-800 pt-3">
+                    <label className="flex items-center gap-2 text-xs text-slate-300">
+                      <input
+                        type="checkbox"
+                        checked={previewEnabled}
+                        onChange={(e) => setPreviewEnabled(e.target.checked)}
+                        className="h-3.5 w-3.5 rounded border-slate-600"
+                      />
+                      Per-branch preview deployments
+                    </label>
+                    <label className="flex items-center gap-2 text-xs text-slate-300">
+                      <input
+                        type="checkbox"
+                        checked={provisionEnabled}
+                        onChange={(e) => setProvisionEnabled(e.target.checked)}
+                        className="h-3.5 w-3.5 rounded border-slate-600"
+                      />
+                      Provisioning from pushed code
+                    </label>
+                  </div>
+                )}
+              </div>
             )}
 
             {error && (

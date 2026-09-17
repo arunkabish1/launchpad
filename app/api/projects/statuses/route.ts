@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { listProjects } from "@/lib/store";
-import { resolvePat, getProjectStatus } from "@/lib/status";
+import { resolvePat, getProjectStatus, resolveProjectLiveUrl } from "@/lib/status";
+import { applyPendingConfig } from "@/lib/runtime-config";
 import { requireAuth, authRequiredResponse } from "@/lib/auth";
 import type { ProjectStatusResult } from "@/lib/types";
 
@@ -42,6 +43,10 @@ export async function GET(request: NextRequest) {
       }
       try {
         statuses[p.id] = await getProjectStatus(p.owner, p.repo, pat);
+        statuses[p.id].liveUrl = await resolveProjectLiveUrl(p).catch(() => null);
+        if (statuses[p.id].status === "success") {
+          await applyPendingConfig(p, statuses[p.id]).catch(() => {});
+        }
       } catch (err) {
         statuses[p.id] = {
           latest: null,

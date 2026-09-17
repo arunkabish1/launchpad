@@ -25,6 +25,7 @@ const ACTION_META: Record<AuditEntry["action"], { label: string; icon: string; c
   preview_disable: { label: "Previews disabled", icon: "◇", color: "text-emerald-300" },
   provision_enable: { label: "Provisioning enabled", icon: "◈", color: "text-sky-300" },
   provision_disable: { label: "Provisioning disabled", icon: "◇", color: "text-sky-300" },
+  config_applied: { label: "Launch config applied", icon: "◈", color: "text-emerald-300" },
 };
 
 export default function ActivityPanel({ projectName }: ActivityPanelProps) {
