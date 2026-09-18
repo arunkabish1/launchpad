@@ -134,3 +134,4 @@ Templates live in `templates/<id>/` with a `template.json` manifest. Built-in te
 under `templates/`, and C3-based templates scaffold live from `create-cloudflare` at launch time.
 Manifests carry a `provider` field — `"cloudflare"` (Workers/Pages) or `"aws"` (Lambda/Amplify).
 `scripts/embed-templates.mjs` regenerates `lib/template-assets.gen.ts` after any template changes.
+# FDE-Workshop-Launchpad
