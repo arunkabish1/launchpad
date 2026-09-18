@@ -3,6 +3,7 @@ import { getProject } from "@/lib/store";
 import { listEnvVars, getCloudflareToken } from "@/lib/cf";
 import { getDefaultAccountId } from "@/lib/config";
 import { requireAuth, authRequiredResponse, verifyOrigin } from "@/lib/auth";
+import { requireProjectRole } from "@/lib/membership";
 import { recordAudit } from "@/lib/audit";
 import { setProjectEnvVar } from "@/lib/envops";
 
@@ -25,6 +26,11 @@ export async function GET(req: NextRequest, ctx: RouteContext<"/api/projects/[id
   const project = await getProject(id);
   if (!project) {
     return NextResponse.json({ error: "Project not found." }, { status: 404 });
+  }
+
+  const access = await requireProjectRole(auth.user, id, "member");
+  if (!access.ok) {
+    return NextResponse.json({ error: access.error }, { status: 403 });
   }
 
   const token = getCloudflareToken();
@@ -50,6 +56,11 @@ export async function POST(req: NextRequest, ctx: RouteContext<"/api/projects/[i
   const project = await getProject(id);
   if (!project) {
     return NextResponse.json({ error: "Project not found." }, { status: 404 });
+  }
+
+  const access = await requireProjectRole(auth.user, id, "member");
+  if (!access.ok) {
+    return NextResponse.json({ error: access.error }, { status: 403 });
   }
 
   let body: { key?: string; value?: string; secret?: boolean };

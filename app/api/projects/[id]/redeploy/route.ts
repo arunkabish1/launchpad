@@ -8,6 +8,7 @@ import {
   validatePat,
 } from "@/lib/github";
 import { requireAuth, authRequiredResponse, verifyOrigin } from "@/lib/auth";
+import { requireProjectRole } from "@/lib/membership";
 import { recordAudit } from "@/lib/audit";
 
 export const runtime = "nodejs";
@@ -24,6 +25,11 @@ export async function POST(req: NextRequest, ctx: RouteContext<"/api/projects/[i
   const project = await getProject(id);
   if (!project) {
     return NextResponse.json({ error: "Project not found." }, { status: 404 });
+  }
+
+  const access = await requireProjectRole(auth.user, id, "member");
+  if (!access.ok) {
+    return NextResponse.json({ error: access.error }, { status: 403 });
   }
 
   const pat = await resolvePat(project.id);

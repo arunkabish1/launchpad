@@ -15,6 +15,7 @@ import { detectStack } from "./detect";
 import { generateDeployPlan, generateGuidedFix, isAiAvailable } from "./ai";
 import { getEnvPat, getDefaultAccountId } from "./config";import { getWorkersSubdomain, buildLiveUrl } from "./cf";
 import { addProject } from "./store";
+import { ensureProjectOwner } from "./membership";
 import { rememberPat } from "./status";
 import { recordAudit } from "./audit";
 import { renderDeployWorkflow } from "./workflow";
@@ -205,6 +206,7 @@ export async function deployImport(input: {
   accountId?: string;
   envValues?: Record<string, string>;
   actor?: string;
+  actorId?: string;
 }): Promise<Project> {
   const { owner, repo } = parseRepoUrl(input.url);
   const creds = await resolveCreds(input.githubPat, input.cloudflareToken, input.accountId);
@@ -284,10 +286,20 @@ export async function deployImport(input: {
     liveUrl,
     imported: true,
     previewEnabled: false,
+    ...(input.actorId ? { createdBy: input.actorId } : {}),
   };
 
   await addProject(project);
   await rememberPat(project.id, creds.pat);
+
+  if (input.actorId) {
+    await ensureProjectOwner({
+      projectId: project.id,
+      projectName: project.name,
+      userId: input.actorId,
+      username: input.actor ?? "admin",
+    }).catch((err) => console.error("Failed to create owner membership", err));
+  }
 
   recordAudit({
     actor: input.actor ?? "admin",

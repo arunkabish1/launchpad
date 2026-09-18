@@ -3,6 +3,7 @@ import { getProject, updateProject } from "@/lib/store";
 import { getCloudflareToken } from "@/lib/cf";
 import { getDefaultAccountId } from "@/lib/config";
 import { requireAuth, authRequiredResponse, verifyOrigin } from "@/lib/auth";
+import { requireProjectRole } from "@/lib/membership";
 import { resolvePat } from "@/lib/status";
 import { createClient } from "@/lib/github";
 import { recordAudit } from "@/lib/audit";
@@ -34,6 +35,12 @@ export async function DELETE(
   if (!project) {
     return NextResponse.json({ error: "Project not found." }, { status: 404 });
   }
+
+  const access = await requireProjectRole(auth.user, id, "member");
+  if (!access.ok) {
+    return NextResponse.json({ error: access.error }, { status: 403 });
+  }
+
   if (project.provider !== "cloudflare") {
     return NextResponse.json(
       { error: "Bindings are managed in the AWS SAM / Amplify templates for AWS projects." },

@@ -47,6 +47,7 @@ export async function POST(req: NextRequest) {
       accountId: body.accountId,
       envValues: body.envValues ?? {},
       actor: auth.actor,
+      actorId: auth.user.id,
     });
     return NextResponse.json({ project }, { status: 201 });
   } catch (err) {

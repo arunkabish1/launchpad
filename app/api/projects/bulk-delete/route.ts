@@ -3,6 +3,7 @@ import { getProject, removeProject } from "@/lib/store";
 import { forgetPat } from "@/lib/status";
 import { deleteProjectResources } from "@/lib/delete-project";
 import { requireAuth, authRequiredResponse, verifyOrigin } from "@/lib/auth";
+import { requireProjectRole } from "@/lib/membership";
 import { recordAudit } from "@/lib/audit";
 
 export const runtime = "nodejs";
@@ -39,6 +40,11 @@ export async function POST(request: NextRequest) {
     const project = await getProject(id);
     if (!project) {
       result.failed.push({ name: id, error: "Project not found." });
+      continue;
+    }
+    const access = await requireProjectRole(auth.user, id, "owner");
+    if (!access.ok) {
+      result.failed.push({ name: project.name, error: access.error });
       continue;
     }
     try {

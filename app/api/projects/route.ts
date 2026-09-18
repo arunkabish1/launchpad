@@ -3,6 +3,7 @@ import { listProjects } from "@/lib/store";
 import { launchProject, LaunchError } from "@/lib/launch";
 import { getTemplate } from "@/lib/templates";
 import { requireAuth, authRequiredResponse, verifyOrigin } from "@/lib/auth";
+import { filterAccessibleProjects } from "@/lib/membership";
 import type { LaunchRequest } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -10,7 +11,8 @@ export const runtime = "nodejs";
 export async function GET(request: NextRequest) {
   const auth = requireAuth(request);
   if (!auth.ok) return authRequiredResponse();
-  return NextResponse.json({ projects: await listProjects() });
+  const projects = await filterAccessibleProjects(auth.user, await listProjects());
+  return NextResponse.json({ projects });
 }
 
 export async function POST(request: NextRequest) {
@@ -36,7 +38,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const project = await launchProject({ ...body, actor: auth.actor });
+    const project = await launchProject({ ...body, actor: auth.actor, actorId: auth.user.id });
     return NextResponse.json({ project }, { status: 201 });
   } catch (err) {
     if (err instanceof LaunchError) {

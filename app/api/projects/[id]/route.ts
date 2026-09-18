@@ -4,6 +4,7 @@ import { getTemplate } from "@/lib/templates";
 import { resolvePat, getProjectStatus, forgetPat, resolveProjectLiveUrl } from "@/lib/status";
 import { deleteProjectResources } from "@/lib/delete-project";
 import { requireAuth, authRequiredResponse, verifyOrigin } from "@/lib/auth";
+import { requireProjectRole } from "@/lib/membership";
 import { recordAudit } from "@/lib/audit";
 import type { ProjectDetail } from "@/lib/types";
 
@@ -18,6 +19,11 @@ export async function GET(req: NextRequest, ctx: RouteContext<"/api/projects/[id
   const project = await getProject(id);
   if (!project) {
     return NextResponse.json({ error: "Project not found." }, { status: 404 });
+  }
+
+  const access = await requireProjectRole(auth.user, id, "member");
+  if (!access.ok) {
+    return NextResponse.json({ error: access.error }, { status: 403 });
   }
 
   const template = getTemplate(project.templateId);
@@ -82,6 +88,11 @@ export async function DELETE(req: NextRequest, ctx: RouteContext<"/api/projects/
   const project = await getProject(id);
   if (!project) {
     return NextResponse.json({ error: "Project not found." }, { status: 404 });
+  }
+
+  const access = await requireProjectRole(auth.user, id, "owner");
+  if (!access.ok) {
+    return NextResponse.json({ error: access.error }, { status: 403 });
   }
 
   let body: { deleteRepo?: boolean; deleteCloudflare?: boolean } = {};

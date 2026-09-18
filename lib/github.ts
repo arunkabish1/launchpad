@@ -71,6 +71,33 @@ export async function deleteRepo(client: Octokit, owner: string, repo: string): 
   await client.rest.repos.delete({ owner, repo });
 }
 
+export type CollaboratorPermission = "pull" | "triage" | "push" | "maintain" | "admin";
+
+export async function addRepoCollaborator(
+  client: Octokit,
+  owner: string,
+  repo: string,
+  username: string,
+  permission: CollaboratorPermission = "push"
+): Promise<number> {
+  const res = await client.rest.repos.addCollaborator({
+    owner,
+    repo,
+    username,
+    permission,
+  });
+  return res.status;
+}
+
+export async function removeRepoCollaborator(
+  client: Octokit,
+  owner: string,
+  repo: string,
+  username: string
+): Promise<void> {
+  await client.rest.repos.removeCollaborator({ owner, repo, username });
+}
+
 export interface RepoBranch {
   name: string;
   sha: string;

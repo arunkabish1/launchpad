@@ -3,6 +3,7 @@ import { getProject } from "@/lib/store";
 import { getCloudflareToken } from "@/lib/cf";
 import { getDefaultAccountId } from "@/lib/config";
 import { requireAuth, authRequiredResponse } from "@/lib/auth";
+import { requireProjectRole } from "@/lib/membership";
 
 export const runtime = "nodejs";
 
@@ -42,6 +43,12 @@ export async function GET(req: NextRequest, ctx: RouteContext<"/api/projects/[id
   if (!project) {
     return NextResponse.json({ error: "Project not found." }, { status: 404 });
   }
+
+  const access = await requireProjectRole(auth.user, id, "member");
+  if (!access.ok) {
+    return NextResponse.json({ error: access.error }, { status: 403 });
+  }
+
   if (project.provider !== "cloudflare" || project.type !== "worker") {
     return NextResponse.json(
       { error: "Live logs are only available for Cloudflare Workers projects right now." },

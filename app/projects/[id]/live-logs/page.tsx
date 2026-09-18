@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
 import { getProject } from "@/lib/store";
+import { getSessionUser } from "@/lib/auth";
+import { requireProjectRole } from "@/lib/membership";
 import LiveLogsPageClient from "@/app/components/live-logs-page-client";
 
 export const dynamic = "force-dynamic";
@@ -9,6 +11,11 @@ export default async function LiveLogsPage({ params }: PageProps<"/projects/[id]
 
   const project = await getProject(id);
   if (!project) notFound();
+
+  const user = await getSessionUser();
+  if (!user) notFound();
+  const access = await requireProjectRole(user, id);
+  if (!access.ok) notFound();
 
   if (project.type !== "worker") {
     return (

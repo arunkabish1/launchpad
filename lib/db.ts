@@ -60,4 +60,46 @@ export async function ensureSchema(): Promise<void> {
       )`
     )
     .run();
+  await db
+    .prepare(
+      `CREATE TABLE IF NOT EXISTS users (
+        id TEXT PRIMARY KEY,
+        username TEXT NOT NULL UNIQUE,
+        github_username TEXT,
+        global_role TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        created_by TEXT
+      )`
+    )
+    .run();
+  await db
+    .prepare(
+      `CREATE TABLE IF NOT EXISTS memberships (
+        project_id TEXT NOT NULL,
+        user_id TEXT NOT NULL,
+        username TEXT NOT NULL,
+        role TEXT NOT NULL,
+        github_username TEXT,
+        github_invite_state TEXT NOT NULL,
+        github_invite_error TEXT,
+        created_at TEXT NOT NULL,
+        PRIMARY KEY (project_id, user_id)
+      )`
+    )
+    .run();
+  await db
+    .prepare(
+      `CREATE TABLE IF NOT EXISTS invites (
+        token_hash TEXT PRIMARY KEY,
+        project_id TEXT NOT NULL,
+        project_name TEXT NOT NULL,
+        role TEXT NOT NULL,
+        created_by TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        expires_at TEXT NOT NULL,
+        accepted_at TEXT,
+        accepted_by TEXT
+      )`
+    )
+    .run();
 }

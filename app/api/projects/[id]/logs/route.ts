@@ -3,6 +3,7 @@ import { getProject } from "@/lib/store";
 import { resolvePat } from "@/lib/status";
 import { createClient, getRunLogs } from "@/lib/github";
 import { requireAuth, authRequiredResponse } from "@/lib/auth";
+import { requireProjectRole } from "@/lib/membership";
 
 export const runtime = "nodejs";
 
@@ -15,6 +16,11 @@ export async function GET(req: NextRequest, ctx: RouteContext<"/api/projects/[id
   const project = await getProject(id);
   if (!project) {
     return NextResponse.json({ error: "Project not found." }, { status: 404 });
+  }
+
+  const access = await requireProjectRole(auth.user, id, "member");
+  if (!access.ok) {
+    return NextResponse.json({ error: access.error }, { status: 403 });
   }
 
   const runId = Number(req.nextUrl.searchParams.get("run"));

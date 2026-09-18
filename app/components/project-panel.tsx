@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import type { DeployRun, Project, ProjectStatusResult } from "@/lib/types";
+import type { DeployRun, Project, ProjectRole, ProjectStatusResult } from "@/lib/types";
 import { getStatusMeta } from "./status-meta";
 import { formatRelative, formatDateTime, shortSha } from "@/lib/format";
 import {
@@ -29,6 +29,7 @@ import BindingsPanel from "./bindings-panel";
 import PreviewPanel from "./preview-panel";
 import ProvisionPanel from "./provision-panel";
 import ActivityPanel from "./activity-panel";
+import MembersPanel from "./members-panel";
 
 interface ProjectTemplateInfo {
   name: string;
@@ -47,6 +48,7 @@ interface ProjectPanelProps {
   liveUrl: string | null;
   initialStatus: ProjectStatusResult | null;
   initialError: string | null;
+  role: ProjectRole;
 }
 
 function runMeta(run: DeployRun) {
@@ -143,13 +145,14 @@ function OverflowMenu({
 }
 
 // ── Tab types ────────────────────────────────────────────────────────────────
-type TabId = "overview" | "deploys" | "env" | "bindings" | "activity";
+type TabId = "overview" | "deploys" | "env" | "bindings" | "members" | "activity";
 
 const TABS: Array<{ id: TabId; label: string }> = [
   { id: "overview", label: "Overview" },
   { id: "deploys", label: "Deploy History" },
   { id: "env", label: "Environment" },
   { id: "bindings", label: "Bindings" },
+  { id: "members", label: "Members" },
   { id: "activity", label: "Activity" },
 ];
 
@@ -162,6 +165,7 @@ export default function ProjectPanel({
   liveUrl,
   initialStatus,
   initialError,
+  role,
 }: ProjectPanelProps) {
   const [status, setStatus] = useState<ProjectStatusResult | null>(initialStatus);
   const [error, setError] = useState<string | null>(initialError);
@@ -843,6 +847,16 @@ export default function ProjectPanel({
         {/* ── BINDINGS TAB ── */}
         {activeTab === "bindings" && project.provider === "cloudflare" && (
           <BindingsPanel projectId={project.id} />
+        )}
+
+        {/* ── MEMBERS TAB ── */}
+        {activeTab === "members" && (
+          <MembersPanel
+            projectId={project.id}
+            projectName={project.name}
+            role={role}
+            canManage={role === "owner"}
+          />
         )}
 
         {/* ── ACTIVITY TAB ── */}

@@ -1,8 +1,10 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getProject } from "@/lib/store";
 import { getTemplate, templateStack } from "@/lib/templates";
 import { deriveLiveUrl } from "@/lib/cf";
 import { resolvePat, getProjectStatus, resolveProjectLiveUrl } from "@/lib/status";
+import { getSessionUser } from "@/lib/auth";
+import { requireProjectRole } from "@/lib/membership";
 import ProjectPanel from "../../components/project-panel";
 
 export const dynamic = "force-dynamic";
@@ -10,8 +12,14 @@ export const dynamic = "force-dynamic";
 export default async function ProjectDetailPage({ params }: PageProps<"/projects/[id]">) {
   const { id } = await params;
 
+  const user = await getSessionUser();
+  if (!user) redirect("/login");
+
   const project = await getProject(id);
   if (!project) notFound();
+
+  const access = await requireProjectRole(user, id, "member");
+  if (!access.ok) notFound();
 
   const template = getTemplate(project.templateId);
 
@@ -47,6 +55,7 @@ export default async function ProjectDetailPage({ params }: PageProps<"/projects
       liveUrl={liveUrl}
       initialStatus={initialStatus}
       initialError={statusError}
+      role={access.role}
     />
   );
 }

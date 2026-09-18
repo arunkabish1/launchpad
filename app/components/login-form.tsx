@@ -9,7 +9,7 @@ export default function LoginForm() {
   const from = searchParams.get("from") || "/";
 
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -21,7 +21,7 @@ export default function LoginForm() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ password, name }),
+        body: JSON.stringify({ password, username }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -40,13 +40,15 @@ export default function LoginForm() {
   return (
     <form onSubmit={handleLogin} className="space-y-4">
       <div>
-        <label className="mb-1 block text-xs font-medium text-slate-300">Name (optional)</label>
+        <label className="mb-1 block text-xs font-medium text-slate-300">Username</label>
         <input
           className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 outline-none focus:border-slate-500"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Your name (shown in the audit log)"
-          autoComplete="name"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          placeholder="Your username (from an invite)"
+          autoComplete="username"
+          required
+          autoFocus
         />
       </div>
       <div>
@@ -58,7 +60,6 @@ export default function LoginForm() {
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Launchpad password"
           autoComplete="current-password"
-          autoFocus
         />
       </div>
 

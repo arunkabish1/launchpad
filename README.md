@@ -18,7 +18,9 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:3000 and sign in with the password from `LAUNCHPAD_ADMIN_PASSWORD`.
+Open http://localhost:3000 and sign in with the shared password from `LAUNCHPAD_ADMIN_PASSWORD` and
+a username. The first person to sign in (or the one using `LAUNCHPAD_ADMIN_USER`, default `admin`)
+becomes the global admin.
 
 ## Required credentials
 
@@ -31,6 +33,7 @@ Open http://localhost:3000 and sign in with the password from `LAUNCHPAD_ADMIN_P
 | `AWS_SECRET_ACCESS_KEY` | AWS secret key paired with `AWS_ACCESS_KEY_ID`. |
 | `AWS_REGION` | Default AWS region (defaults to `us-east-1`). Overridable per project at launch. |
 | `LAUNCHPAD_ADMIN_PASSWORD` | Password for signing in to the Launchpad UI. |
+| `LAUNCHPAD_ADMIN_USER` | Username that is granted the global admin role on sign-in (default `admin`). |
 | `LAUNCHPAD_SECRET` | Key used to encrypt per-project GitHub tokens at rest (`data/`). |
 | `LAUNCHPAD_SESSION_SECRET` | Optional; defaults to `LAUNCHPAD_SECRET`. Signs login sessions. |
 
@@ -47,9 +50,14 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 ## Security model
 
-- **Login**: single shared org password, HMAC-signed session cookie (8h TTL, HttpOnly,
-  SameSite=Strict). All `/api/*` endpoints require a valid session; mutating endpoints also
+- **Login**: single shared org password plus a per-user username (HMAC-signed session cookie, 8h
+  TTL, HttpOnly, SameSite=Strict). Unknown usernames are rejected unless they are the global admin
+  or the very first user. All `/api/*` endpoints require a valid session; mutating endpoints also
   reject cross-origin requests. Failed logins are rate-limited per IP.
+- **Project access**: each project has members (`owner` / `member`). Owners create single-use invite
+  links (7-day TTL) that grant Launchpad access and, when the invitee supplies a GitHub handle,
+  add them as a repo collaborator (`admin` for owners, `push` for members). Non-admins only see
+  projects they belong to; global admins see everything.
 - **Credentials at rest**: any GitHub token entered at launch time is encrypted with
   `LAUNCHPAD_SECRET` before being written to `data/projects.json`. If `LAUNCHPAD_SECRET` is not
   set, per-project tokens are not persisted (the server-side `GITHUB_PAT` is used instead).

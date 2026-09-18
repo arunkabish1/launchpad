@@ -26,6 +26,14 @@ const ACTION_META: Record<AuditEntry["action"], { label: string; icon: string; c
   provision_enable: { label: "Provisioning enabled", icon: "◈", color: "text-sky-300" },
   provision_disable: { label: "Provisioning disabled", icon: "◇", color: "text-sky-300" },
   config_applied: { label: "Launch config applied", icon: "◈", color: "text-emerald-300" },
+  invite_create: { label: "Invite created", icon: "＋", color: "text-sky-300" },
+  invite_revoke: { label: "Invite revoked", icon: "−", color: "text-amber-300" },
+  invite_accept: { label: "Invite accepted", icon: "✓", color: "text-emerald-300" },
+  member_add: { label: "Member added", icon: "＋", color: "text-emerald-300" },
+  member_remove: { label: "Member removed", icon: "−", color: "text-red-300" },
+  member_role_change: { label: "Member role changed", icon: "◈", color: "text-sky-300" },
+  collaborator_add: { label: "GitHub collaborator added", icon: "◈", color: "text-purple-300" },
+  collaborator_remove: { label: "GitHub collaborator removed", icon: "◇", color: "text-purple-300" },
 };
 
 export default function ActivityPanel({ projectName }: ActivityPanelProps) {

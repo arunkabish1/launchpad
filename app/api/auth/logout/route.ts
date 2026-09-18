@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   let actor = "admin";
   if (token) {
     const session = parseSessionToken(token);
-    if (session) actor = session.name;
+    if (session) actor = session.username;
   }
   recordAudit({ actor, action: "logout", project: "-", detail: "logout", outcome: "ok" });
   const res = NextResponse.json({ ok: true });

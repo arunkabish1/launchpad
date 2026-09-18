@@ -3,9 +3,16 @@ import { hasValidSession, EDGE_COOKIE_NAME } from "@/lib/auth-edge";
 
 const PUBLIC_PATHS = new Set(["/login", "/api/auth/login", "/api/auth/logout"]);
 
+function isPublic(pathname: string): boolean {
+  if (PUBLIC_PATHS.has(pathname)) return true;
+  if (pathname.startsWith("/invite/")) return true;
+  if (pathname.startsWith("/api/invites/")) return true;
+  return false;
+}
+
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  if (PUBLIC_PATHS.has(pathname)) {
+  if (isPublic(pathname)) {
     if (pathname === "/login" && (await hasValidSession(req.cookies.get(EDGE_COOKIE_NAME)?.value))) {
       return NextResponse.redirect(new URL("/", req.url));
     }

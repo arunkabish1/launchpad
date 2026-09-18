@@ -14,6 +14,7 @@ import { getTemplate } from "./templates";
 import { getEnvPat, getDefaultAccountId, getDefaultAwsRegion, getOrgName } from "./config";
 import { getWorkersSubdomain, buildLiveUrl } from "./cf";
 import { addProject } from "./store";
+import { ensureProjectOwner } from "./membership";
 import { rememberPat } from "./status";
 import { recordAudit } from "./audit";
 import { encrypt, hasSecretKey } from "./crypto";
@@ -240,6 +241,7 @@ export async function launchProject(request: LaunchRequest): Promise<Project> {
       githubUrl: repoInfo.htmlUrl,
       createdAt: new Date().toISOString(),
       liveUrl,
+      ...(request.actorId ? { createdBy: request.actorId } : {}),
       previewEnabled: provider === "aws" ? template.type === "amplify" : previewOn,
       ...(previewKeyEnc ? { previewKeyEnc } : {}),
       ...(launchEnvVars.length ? { envVars: launchEnvVars, configApplied: false } : {}),
@@ -250,6 +252,15 @@ export async function launchProject(request: LaunchRequest): Promise<Project> {
 
     await addProject(project);
     await rememberPat(project.id, pat);
+
+    if (request.actorId) {
+      await ensureProjectOwner({
+        projectId: project.id,
+        projectName: project.name,
+        userId: request.actorId,
+        username: request.actor ?? "admin",
+      }).catch((err) => console.error("Failed to create owner membership", err));
+    }
 
     recordAudit({
       actor: request.actor ?? "admin",

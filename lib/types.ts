@@ -85,6 +85,50 @@ export interface ConfigStatus {
   awsRegion: string;
 }
 
+export type GlobalRole = "admin" | "member";
+
+export interface SessionUser {
+  id: string;
+  username: string;
+  globalRole: GlobalRole;
+}
+
+export type ProjectRole = "owner" | "member";
+
+export type GithubInviteState = "none" | "pending" | "active" | "failed";
+
+export interface UserRecord {
+  id: string;
+  username: string;
+  githubUsername: string | null;
+  globalRole: GlobalRole;
+  createdAt: string;
+  createdBy: string | null;
+}
+
+export interface Membership {
+  projectId: string;
+  userId: string;
+  username: string;
+  role: ProjectRole;
+  githubUsername: string | null;
+  githubInviteState: GithubInviteState;
+  githubInviteError?: string;
+  createdAt: string;
+}
+
+export interface Invite {
+  tokenHash: string;
+  projectId: string;
+  projectName: string;
+  role: ProjectRole;
+  createdBy: string;
+  createdAt: string;
+  expiresAt: string;
+  acceptedAt: string | null;
+  acceptedBy: string | null;
+}
+
 export interface Project {
   id: string;
   name: string;
@@ -98,6 +142,7 @@ export interface Project {
   githubUrl: string;
   createdAt: string;
   liveUrl: string | null;
+  createdBy?: string;
   patEnc?: string;
   awsAccessKeyEnc?: string;
   awsSecretKeyEnc?: string;
@@ -189,7 +234,15 @@ export type AuditAction =
   | "preview_disable"
   | "provision_enable"
   | "provision_disable"
-  | "config_applied";
+  | "config_applied"
+  | "invite_create"
+  | "invite_revoke"
+  | "invite_accept"
+  | "member_add"
+  | "member_remove"
+  | "member_role_change"
+  | "collaborator_add"
+  | "collaborator_remove";
 
 export interface AuditEntry {
   at: string;
@@ -232,6 +285,7 @@ export interface LaunchRequest {
   awsRegion?: string;
   config?: LaunchConfig;
   actor?: string;
+  actorId?: string;
 }
 
 export interface ProjectDetail {

@@ -8,12 +8,18 @@ export const runtime = "nodejs";
 export async function GET(req: NextRequest) {
   const auth = requireAuth(req);
   if (!auth.ok) return authRequiredResponse();
+  if (auth.user.globalRole !== "admin") {
+    return NextResponse.json({ error: "Only a global admin can view server configuration." }, { status: 403 });
+  }
   return NextResponse.json({ status: await getConfigStatus() });
 }
 
 export async function PATCH(req: NextRequest) {
   const auth = requireAuth(req);
   if (!auth.ok) return authRequiredResponse();
+  if (auth.user.globalRole !== "admin") {
+    return NextResponse.json({ error: "Only a global admin can change server configuration." }, { status: 403 });
+  }
   if (!verifyOrigin(req)) {
     return NextResponse.json({ error: "Cross-origin request rejected." }, { status: 403 });
   }

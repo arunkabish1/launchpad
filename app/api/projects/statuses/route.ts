@@ -3,6 +3,7 @@ import { listProjects } from "@/lib/store";
 import { resolvePat, getProjectStatus, resolveProjectLiveUrl } from "@/lib/status";
 import { applyPendingConfig } from "@/lib/runtime-config";
 import { requireAuth, authRequiredResponse } from "@/lib/auth";
+import { filterAccessibleProjects } from "@/lib/membership";
 import type { ProjectStatusResult } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -14,19 +15,21 @@ interface CacheEntry {
   expiresAt: number;
 }
 
-let cache: CacheEntry | null = null;
+let cache: Map<string, CacheEntry> = new Map();
 
 export async function GET(request: NextRequest) {
   const auth = requireAuth(request);
   if (!auth.ok) return authRequiredResponse();
 
+  const cacheKey = `${auth.user.id}:${auth.user.globalRole}`;
   const now = Date.now();
-  if (cache && cache.expiresAt > now) {
-    return NextResponse.json({ statuses: cache.statuses });
+  const cached = cache.get(cacheKey);
+  if (cached && cached.expiresAt > now) {
+    return NextResponse.json({ statuses: cached.statuses });
   }
 
   const statuses: Record<string, ProjectStatusResult> = {};
-  const projects = await listProjects();
+  const projects = await filterAccessibleProjects(auth.user, await listProjects());
 
   await Promise.all(
     projects.map(async (p) => {
@@ -59,6 +62,7 @@ export async function GET(request: NextRequest) {
     })
   );
 
-  cache = { statuses, expiresAt: now + CACHE_TTL_MS };
+  cache.set(cacheKey, { statuses, expiresAt: now + CACHE_TTL_MS });
+  if (cache.size > 50) cache = new Map();
   return NextResponse.json({ statuses });
 }

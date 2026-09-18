@@ -1,12 +1,19 @@
 import { listProjects } from "@/lib/store";
 import { deriveLiveUrl } from "@/lib/cf";
+import { redirect } from "next/navigation";
+import { getSessionUser } from "@/lib/auth";
+import { filterAccessibleProjects } from "@/lib/membership";
 import Link from "next/link";
 import ProjectsTable, { type TableProject } from "../components/projects-table";
 
 export const dynamic = "force-dynamic";
 
 export default async function ProjectsPage() {
-  const projects = (await listProjects()).map<TableProject>((p) => ({
+  const user = await getSessionUser();
+  if (!user) redirect("/login");
+  const projects = (
+    await filterAccessibleProjects(user, await listProjects())
+  ).map<TableProject>((p) => ({
     ...p,
     liveUrl: deriveLiveUrl(p),
   }));
