@@ -95,6 +95,8 @@ export interface SessionUser {
 
 export type ProjectRole = "owner" | "member";
 
+export type SiteAccessMode = "public" | "org" | "members";
+
 export type GithubInviteState = "none" | "pending" | "active" | "failed";
 
 export interface UserRecord {
@@ -153,6 +155,10 @@ export interface Project {
   previewKeyEnc?: string;
   imported?: boolean;
   configApplied?: boolean;
+  siteAccess?: SiteAccessMode;
+  siteAccessKey?: string;
+  siteAccessKeyEnc?: string;
+  siteAccessPrevMain?: string;
 }
 
 export interface StoredEnvVar {
@@ -242,7 +248,10 @@ export type AuditAction =
   | "member_remove"
   | "member_role_change"
   | "collaborator_add"
-  | "collaborator_remove";
+  | "collaborator_remove"
+  | "site_access_enable"
+  | "site_access_disable"
+  | "site_access_rotate";
 
 export interface AuditEntry {
   at: string;

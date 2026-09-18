@@ -681,6 +681,83 @@ table.data .goto-cell{position:relative}
 .end{display:flex;justify-content:flex-end;gap:8px}
 .muted{color:var(--text-3)}
 .nowrap{white-space:nowrap}
+
+/* ── REAL-APP FEATURES: members / access / provision ────── */
+.row-pill{display:inline-flex;align-items:center;gap:5px;border-radius:99px;padding:2px 9px;font-size:11px;font-weight:600}
+.row-pill.ok{background:rgba(31,175,116,.14);color:#1FAF74}
+.row-pill.warn{background:rgba(232,196,120,.14);color:#B98C3E}
+.row-pill.err{background:rgba(226,92,92,.14);color:#C95E5E}
+.row-pill.flat{background:rgba(8,189,184,.1);color:var(--np-teal-600)}
+.member-cell{display:flex;align-items:center;gap:10px}
+.member-cell .m-name{font-size:13px;color:var(--text-2);font-weight:600}
+.member-cell .m-handle{font-size:11px;color:var(--text-4);font-family:var(--font-mono);margin-top:1px}
+.invite-wrap{display:flex;gap:8px}
+.invite-link{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--font-mono);font-size:12px;color:var(--np-teal-600);background:rgba(8,189,184,.06);border:1px dashed rgba(8,189,184,.35);border-radius:9px;padding:9px 11px}
+.key-chip{display:inline-flex;align-items:center;gap:10px;font-family:var(--font-mono);font-size:12.5px;color:var(--np-teal-600);background:rgba(8,189,184,.07);border:1px solid var(--np-line);border-radius:9px;padding:8px 12px}
+.seg-rows{display:grid;gap:10px}
+.seg-row{display:flex;align-items:flex-start;gap:11px;border:1px solid var(--np-line);border-radius:11px;padding:13px 14px;cursor:pointer;transition:border-color .15s,background .15s}
+.seg-row:hover{border-color:rgba(8,189,184,.45)}
+.seg-row.on{border-color:rgba(8,189,184,.75);background:rgba(8,189,184,.05);box-shadow:inset 0 0 0 1px rgba(8,189,184,.35)}
+.seg-row .s-radio{width:15px;height:15px;border-radius:99px;border:1.5px solid var(--text-4);margin-top:2px;flex-shrink:0;display:grid;place-items:center}
+.seg-row.on .s-radio{border-color:var(--np-teal-600)}
+.seg-row.on .s-radio::after{content:"";width:7px;height:7px;border-radius:99px;background:var(--np-teal-600)}
+.seg-row .s-tx{display:flex;flex-direction:column;gap:2px}
+.seg-row .s-t{font-size:13px;font-weight:600;color:var(--text-2)}
+.seg-row .s-d{font-size:12px;color:var(--text-4);line-height:1.45}
+.prov-grid{display:grid;grid-template-columns:96px 1fr;gap:8px 12px;font-size:12px}
+.prov-grid .pg-k{color:var(--text-4);font-family:var(--font-mono);font-size:11px;padding-top:1px}
+.prov-grid .pg-v{color:var(--text-2);line-height:1.5}
+.prov-note{font-size:11.5px;color:var(--text-4);line-height:1.5;margin-top:12px;padding-top:12px;border-top:1px solid var(--np-line)}
+
+/* ── REAL-APP FEATURES: grouped live log sessions ────────── */
+.logreq{border:1px solid rgba(8,189,184,.14);border-radius:10px;margin-bottom:10px;overflow:hidden;background:rgba(6,48,46,.35)}
+.lr-head{display:flex;align-items:center;gap:9px;padding:7px 12px;border-bottom:1px solid rgba(8,189,184,.12)}
+.lr-ts{font-family:var(--font-mono);font-size:10.5px;color:#6E9E98}
+.lr-method{font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:.02em;border-radius:5px;padding:2px 6px;color:#DCEBE7}
+.lr-method.g{background:rgba(31,175,116,.18);color:#63C9A4}
+.lr-method.a{background:rgba(232,196,120,.18);color:#E8C478}
+.lr-method.b{background:rgba(120,173,255,.18);color:#78ADFF}
+.lr-method.r{background:rgba(226,92,92,.18);color:#E25C5C}
+.lr-method.n{background:rgba(158,163,155,.18);color:#9EA39B}
+.lr-url{font-family:var(--font-mono);font-size:12px;color:#BFE9E4}
+.lr-out{display:inline-flex;align-items:center;gap:5px;margin-left:auto;font-size:10.5px;font-weight:600;border-radius:99px;padding:2px 8px;letter-spacing:.02em}
+.lr-out.ok{background:rgba(31,175,116,.16);color:#63C9A4}
+.lr-out.err{background:rgba(226,92,92,.16);color:#E25C5C}
+.lr-out.canc{background:rgba(158,163,155,.16);color:#9EA39B}
+.lr-out.cpu{background:rgba(226,92,92,.16);color:#E8A25C}
+.lr-out.unk{background:rgba(232,196,120,.16);color:#E8C478}
+.lr-body{padding:8px 12px 10px;display:flex;flex-direction:column;gap:4px}
+.lr-body .logline{padding:1px 0}
+.lr-exc{margin-top:6px;border-left:2px solid rgba(226,92,92,.55);background:rgba(226,92,92,.07);border-radius:0 7px 7px 0;padding:8px 10px}
+.lr-exc .exc-t{font-size:11.5px;color:#E25C5C;font-weight:600}
+.lr-exc .exc-s{font-family:var(--font-mono);font-size:10.5px;color:#C98B8B;line-height:1.55;margin-top:4px;white-space:pre-wrap}
+
+/* ── REAL-APP FEATURES: settings status rows ─────────────── */
+.st-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:9px 0;border-bottom:1px solid rgba(6,48,46,.07)}
+.st-row:last-child{border-bottom:0}
+.st-row .st-k{font-size:13px;color:var(--text-2);font-weight:600}
+.st-row .st-h{font-size:11.5px;color:var(--text-4);margin-top:2px}
+.st-row .st-pill{flex-shrink:0}
+
+/* ── REAL-APP FEATURES: AI explain ───────────────────────── */
+.expl-kicker{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--np-teal-600);font-weight:600}
+.sparkle{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,rgba(8,189,184,.2),rgba(8,189,184,.05));border:1px solid rgba(8,189,184,.35);color:var(--np-teal-600);flex-shrink:0}
+.expl-prose{font-size:13.5px;color:var(--text-2);line-height:1.65}
+.expl-line{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid rgba(6,48,46,.06)}
+.expl-line:last-child{border-bottom:0}
+.expl-line .el-icon{flex-shrink:0;width:26px;height:26px;border-radius:8px;display:grid;place-items:center;background:rgba(8,189,184,.08);color:var(--np-teal-600)}
+.expl-line .el-t{font-size:13px;font-weight:600;color:var(--text)}
+.expl-line .el-s{font-size:12px;color:var(--text-3);line-height:1.5;margin-top:1px}
+.opt-row{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--text-2)}
+.opt-row input{accent-color:var(--np-teal-600);width:15px;height:15px}
+.opt-note{font-size:11.5px;color:var(--text-4);margin-top:9px;line-height:1.5}
+
+/* ── REAL-APP FEATURES: invite accept page ──────────────── */
+.invite-sec{position:fixed;inset:0;z-index:1;display:none;background:radial-gradient(620px 420px at 50% -10%,#E4F1EF,var(--bg));align-items:center;justify-content:center;padding:24px}
+.invite-sec.active{display:flex}
+.invite-inner{width:100%;max-width:424px}
+.invite-sec .lp-card{text-align:center}
+.invite-sec .np-view{display:inline-flex;align-items:center;gap:10px;margin-bottom:18px}
 </style>
 </head>
 <body class="on-login">
@@ -768,6 +845,31 @@ table.data .goto-cell{position:relative}
         </div>
         <p class="lp-hint">No account yet? <code>dev</code> — every field above is just for show.</p>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ INVITE ACCEPT ══════════════ -->
+<div class="invite-sec" data-view="invite">
+  <div class="invite-inner">
+    <div class="lp-card">
+      <div class="np-view">
+        <span class="brand-mark"><svg viewBox="0 0 32 32" role="img" aria-label="Newpage"><path fill-rule="evenodd" clip-rule="evenodd" d="M10.6667 0H21.3333H32L21.3333 10.6667H10.6667H0L10.6667 0Z" fill="#08BDB8"/><path fill-rule="evenodd" clip-rule="evenodd" d="M21.3281 10.6667V21.3333V32L31.9948 21.3333V10.6667V0L21.3281 10.6667Z" fill="#FFCF36"/><path d="M21.3281 0V10.6667L31.9948 0H21.3281Z" fill="#008C85"/><path d="M21.3281 10.6667H31.9948V0L21.3281 10.6667Z" fill="#FF7F1F"/></svg></span>
+        <span class="lp-eyebrow" style="margin:0">Invitation</span>
+      </div>
+      <h2>Join a project</h2>
+      <p class="sub">Accept your invite to <b style="color:var(--text-2)">storefront-next</b> on Newpage Cloud. You'll get a member role.</p>
+      <div class="field">
+        <label>Choose a username</label>
+        <input class="input" id="inviteUserName" placeholder="e.g. dev.maya" autocomplete="username">
+        <span class="help">Shown in deploys and activity. Sign in with the workspace password.</span>
+      </div>
+      <div class="field">
+        <label>GitHub username <span class="muted">(optional)</span></label>
+        <input class="input" placeholder="Your GitHub handle">
+      </div>
+      <button class="btn primary lg" style="width:100%" data-invite-accept>Accept invite →</button>
+      <a class="link" data-goto="login" style="display:inline-block;margin-top:16px">← Back to sign in</a>
     </div>
   </div>
 </div>
@@ -960,6 +1062,12 @@ table.data .goto-cell{position:relative}
                         <div><div class="tr-name">Auto-deploy on push</div><div class="tr-desc">Rebuild production on every merge to <code style="font-family:var(--font-mono)">main</code>.</div></div>
                         <span class="switch on" data-switch></span>
                       </div>
+                    </div>
+                    <div class="fieldset-div">Workers options</div>
+                    <div class="field" style="grid-column:1/-1">
+                      <label class="opt-row"><input type="checkbox" checked> Per-branch preview deployments</label>
+                      <label class="opt-row" style="margin-top:8px"><input type="checkbox" data-prov-check> Provisioning from pushed code</label>
+                      <p class="opt-note">Per-branch previews rebuild on every push. With provisioning enabled we watch <code class="muted" style="font-family:var(--font-mono)">wrangler.toml</code> and create KV, D1, and R2 resources on push to main.</p>
                     </div>
                   </div>
                   <div class="callout target"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg>Target URL: <code id="cfgSource" style="font-family:var(--font-mono)">create-cloudflare (live)</code></div>
@@ -1274,9 +1382,11 @@ table.data .goto-cell{position:relative}
             </div>
             <div class="ptabs">
               <button class="ptab on" data-tab="overview">Overview</button>
-              <button class="ptab" data-tab="deploys">Deploys <span class="cnt">3</span></button>
+              <button class="ptab" data-tab="deploys">Deploys <span class="cnt">4</span></button>
               <button class="ptab" data-tab="env">Env <span class="cnt">4</span></button>
               <button class="ptab" data-tab="bindings">Bindings <span class="cnt">2</span></button>
+              <button class="ptab" data-tab="members">Members <span class="cnt">2</span></button>
+              <button class="ptab" data-tab="access">Access</button>
               <button class="ptab" data-tab="activity">Activity <span class="cnt">18</span></button>
             </div>
           </div>
@@ -1385,19 +1495,23 @@ table.data .goto-cell{position:relative}
               </div>
 
               <div class="card">
-                <div class="card-hd"><span class="card-tt"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg>Provisioning</span></div>
+                <div class="card-hd"><span class="card-tt"><svg class="icon" viewBox="0 0 24 24"><path d="M13 3 5 14h6l-1 7 8-11h-6l1-7Z"/></svg>Provisioning from code</span><span class="pill ok" id="provPill"><span class="dot"></span>enabled</span></div>
                 <div class="card-bd" style="padding-bottom:10px">
-                  <div class="prog-row top">
-                    <div class="prog-lbl"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M3 21h18M5 21V9l7-5 7 5v12"/></svg>Compute<span class="st ok">✓ provisioned</span></div>
-                    <div class="prog-track"><div class="prog-fill ok" style="width:100%"></div></div>
+                  <p class="prov-note" style="margin-top:0;padding-top:0;border-top:0;margin-bottom:12px">Declare resources in <code class="muted" style="font-family:var(--font-mono)">wrangler.toml</code> — we create them on push to <b style="color:var(--text-2)">main</b>.</p>
+                  <div class="prov-grid">
+                    <span class="pg-k">KV</span><span class="pg-v"><code style="font-family:var(--font-mono)">[[kv_namespaces]] binding = "edge-cache"</code> → auto-created ✓</span>
+                    <span class="pg-k">D1</span><span class="pg-v"><code style="font-family:var(--font-mono)">[[d1_databases]] binding = "storefront_db"</code> → auto-created ✓</span>
+                    <span class="pg-k">R2</span><span class="pg-v">Bucket <code style="font-family:var(--font-mono)">assets</code> from <code style="font-family:var(--font-mono)">[[r2_buckets]]</code> ✓</span>
+                    <span class="pg-k">AI</span><span class="pg-v">AI Search + Workers AI via <b style="color:var(--text-2)">launchpad provision --step</b></span>
+                    <span class="pg-k">Turnstile</span><span class="pg-v">Widget via <b style="color:var(--text-2)">launchpad provision --step</b></span>
                   </div>
-                  <div class="prog-row">
-                    <div class="prog-lbl"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17"/></svg>DNS &amp; edge route<span class="st ok">✓ live</span></div>
-                    <div class="prog-track"><div class="prog-fill ok" style="width:100%"></div></div>
-                  </div>
-                  <div class="prog-row">
-                    <div class="prog-lbl"><svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M12 3 4.8 14a1.7 1.7 0 0 0 1.5 2.6h11.4a1.7 1.7 0 0 0 1.5-2.6L12 3Z"/><path d="M12 16.6V21"/></svg>Preview branch — <span style="font-family:var(--font-mono)">feat/cart-rules</span><span class="st info">building</span></div>
-                    <div class="prog-track"><div class="prog-fill" style="width:62%"></div></div>
+                  <div class="log-pre mt-3" style="font-size:11px;line-height:1.6">$ launchpad provision storefront-next --plan
+✓ KV edge-cache (create)   → us-east
+✓ D1 storefront_db (create)→ us-east
+✓ R2 assets (create)       → us-east</div>
+                  <div class="end mt-3">
+                    <button class="btn outline sm" data-provision-edit>Edit wrangler.toml</button>
+                    <button class="btn ghost sm" data-provision-toggle>Disable</button>
                   </div>
                 </div>
               </div>
@@ -1427,11 +1541,12 @@ table.data .goto-cell{position:relative}
             <div class="card-bd" style="padding:6px 0">
               <div class="table-scroll">
               <table class="data">
-                <thead><tr><th>Commit</th><th>Author</th><th>Deployed</th><th>Duration</th><th>Status</th><th style="width:90px"></th></tr></thead>
+                <thead><tr><th>Commit</th><th>Author</th><th>Deployed</th><th>Duration</th><th>Status</th><th style="width:196px"></th></tr></thead>
                 <tbody>
                   <tr><td><span class="goto-row"><span class="sha" style="font-family:var(--font-mono);color:var(--np-teal-700)">f4a9c21</span><span class="tl-s">feat: cart line-item promotions</span></span></td><td><span class="goto-row"><span class="avatar" style="width:24px;height:24px;font-size:10px">JS</span>jane.smith</span></td><td><span class="rel">2m ago</span></td><td><span class="rel">in progress</span></td><td><span class="pill info pulse"><span class="dot"></span>running</span></td><td><div class="end"><button class="btn ghost sm">Rollback</button></div></td></tr>
-                  <tr><td><span class="goto-row"><span class="sha" style="font-family:var(--font-mono);color:var(--text-2)">e71b00f</span></span></td><td><span class="goto-row"><span class="avatar" style="width:24px;height:24px;font-size:10px;background:#0C8A5C">MR</span>miguel.r</span></td><td><span class="rel">3h ago</span></td><td><span class="rel">8s</span></td><td><span class="pill ok"><span class="dot"></span>success</span></td><td><div class="end"><button class="btn ghost sm">Rollback</button></div></td></tr>
-                  <tr><td><span class="goto-row"><span class="sha" style="font-family:var(--font-mono);color:var(--text-2)">c32d77b</span></span></td><td><span class="goto-row"><span class="avatar" style="width:24px;height:24px;font-size:10px">JS</span>jane.smith</span></td><td><span class="rel">2d ago</span></td><td><span class="rel">9s</span></td><td><span class="pill ok"><span class="dot"></span>success</span></td><td><div class="end"><button class="btn ghost sm">Rollback</button></div></td></tr>
+                  <tr><td><span class="goto-row"><span class="sha" style="font-family:var(--font-mono);color:var(--text-2)">b3f0a77</span><span class="tl-s">feat: shipment tracking binding</span></span></td><td><span class="goto-row"><span class="avatar" style="width:24px;height:24px;font-size:10px;background:#8A6D3B">CG</span>carlos.g</span></td><td><span class="rel">2h ago</span></td><td><span class="rel">9s</span></td><td><span class="pill err"><span class="dot"></span>failed</span></td><td><div class="end"><button class="btn ghost sm" data-explain="b3f0a77">Explain →</button><button class="btn ghost sm" data-open-modal="logs">Logs</button></div></td></tr>
+                  <tr><td><span class="goto-row"><span class="sha" style="font-family:var(--font-mono);color:var(--text-2)">e71b00f</span></span></td><td><span class="goto-row"><span class="avatar" style="width:24px;height:24px;font-size:10px;background:#0C8A5C">MR</span>miguel.r</span></td><td><span class="rel">3h ago</span></td><td><span class="rel">8s</span></td><td><span class="pill ok"><span class="dot"></span>success</span></td><td><div class="end"><button class="btn ghost sm">Rollback</button><button class="btn ghost sm" data-open-modal="logs">Logs</button></div></td></tr>
+                  <tr><td><span class="goto-row"><span class="sha" style="font-family:var(--font-mono);color:var(--text-2)">c32d77b</span></span></td><td><span class="goto-row"><span class="avatar" style="width:24px;height:24px;font-size:10px">JS</span>jane.smith</span></td><td><span class="rel">2d ago</span></td><td><span class="rel">9s</span></td><td><span class="pill ok"><span class="dot"></span>success</span></td><td><div class="end"><button class="btn ghost sm">Rollback</button><button class="btn ghost sm" data-open-modal="logs">Logs</button></div></td></tr>
                 </tbody>
               </table>
               </div>
@@ -1470,15 +1585,116 @@ table.data .goto-cell{position:relative}
 
         <!-- activity -->
         <div class="pane" data-tab="activity">
+<div class="card">
+                <div class="card-bd">
+                  <ol class="tl-mini">
+                    <li class="tl-row info"><span class="tl-dot"></span><span class="tl-main"><span class="tl-t">Deploy started</span><span class="tl-s">triggered by push f4a9c21 → main — jane.smith</span></span><span class="tl-when">2m ago</span></li>
+                    <li class="tl-row warn"><span class="tl-dot"></span><span class="tl-main"><span class="tl-t">Preview created</span><span class="tl-s">feat/cart-rules → preview.st-9f2c.newpage.io</span></span><span class="tl-when">18m ago</span></li>
+                    <li class="tl-row err"><span class="tl-dot"></span><span class="tl-main"><span class="tl-t">Deploy failed</span><span class="tl-s">b3f0a77 bound an undefined D1 binding — carlos.g</span></span><span class="tl-when">2h ago</span></li>
+                    <li class="tl-row ok"><span class="tl-dot"></span><span class="tl-main"><span class="tl-t">Env variable updated</span><span class="tl-s">REDIS_URL changed by miguel.r</span></span><span class="tl-when">1h ago</span></li>
+                    <li class="tl-row ok"><span class="tl-dot"></span><span class="tl-main"><span class="tl-t">Deploy succeeded</span><span class="tl-s">e71b00f rolled to all zones — 8s</span></span><span class="tl-when">3h ago</span></li>
+                    <li class="tl-row err"><span class="tl-dot"></span><span class="tl-main"><span class="tl-t">Health check alert</span><span class="tl-s">P99 latency 1.4s for 3m — auto-recovered</span></span><span class="tl-when">1d ago</span></li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+
+        <!-- members -->
+        <div class="pane" data-tab="members">
           <div class="card">
+            <div class="card-hd"><span class="card-tt"><svg class="icon" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/><circle cx="17.5" cy="9" r="2.5"/><path d="M21 19.5c0-2.5-1.8-4.3-4.3-4.7"/></svg>Team</span><span class="count">2 members · 1 pending</span></div>
+            <div class="card-bd" style="padding:6px 0">
+              <div class="table-scroll">
+                <table class="data">
+                  <thead><tr><th>Member</th><th>Role</th><th>GitHub collaborator</th><th>Status</th><th style="width:180px"></th></tr></thead>
+                  <tbody>
+                    <tr>
+                      <td><span class="member-cell"><span class="avatar">JS</span><span><span class="m-name">Jane Smith</span><br><span class="m-handle">jane.smith · @jane-smith</span></span></span></td>
+                      <td><span class="row-pill ok">owner</span></td>
+                      <td><span class="rel">Active · jane-smith</span></td>
+                      <td><span class="row-pill flat">active</span></td>
+                      <td><div class="end"><button class="btn ghost sm">Change role</button><button class="btn ghost sm danger" data-rem-member>Remove</button></div></td>
+                    </tr>
+                    <tr>
+                      <td><span class="member-cell"><span class="avatar" style="background:#0C8A5C">MR</span><span><span class="m-name">Miguel Rodriguez</span><br><span class="m-handle">miguel.r · @miguel-r</span></span></span></td>
+                      <td><span class="row-pill flat">member</span></td>
+                      <td><span class="rel">Active · miguel-r</span></td>
+                      <td><span class="row-pill flat">active</span></td>
+                      <td><div class="end"><button class="btn ghost sm">Change role</button><button class="btn ghost sm danger" data-rem-member>Remove</button></div></td>
+                    </tr>
+                    <tr>
+                      <td><span class="member-cell"><span class="avatar" style="background:#8A6D3B">?</span><span><span class="m-name">Pending invite</span><br><span class="m-handle">devops@pipeline.ops</span></span></span></td>
+                      <td><span class="row-pill flat">member</span></td>
+                      <td><span class="rel">—</span></td>
+                      <td><span class="row-pill warn">pending</span></td>
+                      <td><div class="end"><button class="btn ghost sm" data-copy-text="https://launchpad.newpage.io/invite/npkw_qX3v8fT2">Copy invite</button><button class="btn ghost sm danger" data-rem-member>Revoke</button></div></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-hd"><span class="card-tt"><svg class="icon" viewBox="0 0 24 24"><path d="M4 4h16v12H4z"/><path d="m4 16 5-5 3 3 4-4 4 4"/><path d="M22 6.5V20a2 2 0 0 1-2 2H8"/></svg>Invite a collaborator</span></div>
             <div class="card-bd">
-              <ol class="tl-mini">
-                <li class="tl-row info"><span class="tl-dot"></span><span class="tl-main"><span class="tl-t">Deploy started</span><span class="tl-s">triggered by push f4a9c21 → main — jane.smith</span></span><span class="tl-when">2m ago</span></li>
-                <li class="tl-row warn"><span class="tl-dot"></span><span class="tl-main"><span class="tl-t">Preview created</span><span class="tl-s">feat/cart-rules → preview.st-9f2c.newpage.io</span></span><span class="tl-when">18m ago</span></li>
-                <li class="tl-row ok"><span class="tl-dot"></span><span class="tl-main"><span class="tl-t">Env variable updated</span><span class="tl-s">REDIS_URL changed by miguel.r</span></span><span class="tl-when">1h ago</span></li>
-                <li class="tl-row ok"><span class="tl-dot"></span><span class="tl-main"><span class="tl-t">Deploy succeeded</span><span class="tl-s">e71b00f rolled to all zones — 8s</span></span><span class="tl-when">3h ago</span></li>
-                <li class="tl-row err"><span class="tl-dot"></span><span class="tl-main"><span class="tl-t">Health check alert</span><span class="tl-s">P99 latency 1.4s for 3m — auto-recovered</span></span><span class="tl-when">1d ago</span></li>
-              </ol>
+              <div class="fgrid">
+                <div class="field"><label>Email or GitHub handle</label><input class="input" id="inviteEmail" placeholder="teammate@newpage.io"></div>
+                <div class="field"><label>Role</label><select class="input" id="inviteRole"><option value="member">Member — deploy + env + logs</option><option value="owner">Owner — full control incl. access</option></select></div>
+              </div>
+              <div class="end mt-3"><button class="btn primary" data-create-invite><svg class="icon" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 20h16"/></svg>Create invite link</button></div>
+              <div class="invite-wrap mt-3 hidden" id="inviteWrap">
+                <span class="invite-link" id="inviteLink">https://launchpad.newpage.io/invite/npkw_qX3v8fT2</span>
+                <button class="btn outline sm" data-copy-value="#inviteLink">Copy</button>
+                <button class="btn ghost sm" data-goto="invite">Preview page →</button>
+              </div>
+              <p class="prov-note">Invitees accept via a signed link — valid for 7 days. Access to the site itself still follows the Access tab policy.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- access -->
+        <div class="pane" data-tab="access">
+          <div class="grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+            <div>
+              <div class="card">
+                <div class="card-hd"><span class="card-tt"><svg class="icon" viewBox="0 0 24 24"><path d="M8 17h8c1.6 0 3.5-.8 3.5-3.5S17.1 10 15.5 10h-.2A5.5 5.5 0 0 0 4.8 9.6C3.7 9.9 3 10.9 3 12.2c0 2 .9 4.8 5 4.8Z"/><path d="M21 17v5M18.5 19.5h5"/></svg>Site access</span></div>
+                <div class="card-bd">
+                  <div class="seg-rows">
+                    <div class="seg-row"><span class="s-radio"></span><span class="s-tx"><span class="s-t">Public</span><span class="s-d">Anyone with the URL can view. No key needed.</span></span></div>
+                    <div class="seg-row on" data-access-seg="org"><span class="s-radio"></span><span class="s-tx"><span class="s-t">Organization</span><span class="s-d">Any signed-in member of this workspace can view.</span></span></div>
+                    <div class="seg-row" data-access-seg="members"><span class="s-radio"></span><span class="s-tx"><span class="s-t">Members only</span><span class="s-d">Only members of this project. Key required for bots and CI.</span></span></div>
+                    <div class="seg-row" data-access-seg="priv"><span class="s-radio"></span><span class="s-tx"><span class="s-t">Private</span><span class="s-d">No public route. Grant access via key or members only.</span></span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div class="card">
+                <div class="card-hd"><span class="card-tt"><svg class="icon" viewBox="0 0 24 24"><path d="M21 8V5H3v3"/><path d="M4 8h16l-1.5 12h-13L4 8Z"/><path d="M9 8V5m6 3V5"/></svg>Access key</span></div>
+                <div class="card-bd">
+                  <div class="dl">
+                    <div class="dl-row"><span class="k">Key</span><span class="key-chip">npk_live_••••••••••••8f2c</span></div>
+                    <div class="dl-row"><span class="k">Issued</span><span class="v">2m ago · by jane.smith</span></div>
+                    <div class="dl-row"><span class="k">Last used</span><span class="v">just now · GET /api/nav</span></div>
+                  </div>
+                  <div class="end mt-3">
+                    <button class="btn outline sm" data-copy-text="npk_live_••••••••••••8f2c"><svg class="icon" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy key</button>
+                    <button class="btn ghost sm danger" data-rotate-key>Rotate key</button>
+                  </div>
+                  <div class="dl mt-3" style="border-top:1px solid var(--np-line)">
+                    <div class="dl-row"><span class="k">Protect this site</span><span class="v" style="display:flex;gap:10px;align-items:center"><span class="switch on" data-switch></span>challenge bots before serve</span></div>
+                  </div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-hd"><span class="card-tt"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 9h18M9 17v2"/></svg>In-fetch usage</span></div>
+                <div class="card-bd">
+                  <div class="log-pre" style="font-size:11px;line-height:1.6">fetch("https://storefront-next.newpage.io", {
+  headers: { "Authorization": "Bearer npk_live_…" }
+})</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1557,39 +1773,49 @@ table.data .goto-cell{position:relative}
         </div>
         <div class="set-grid">
           <div class="card">
-            <div class="set-card-hd"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 8v5l3 2"/></svg><div><h3>Security checklist</h3><p>Policy gates enforced on every workspace deploy.</p></div></div>
+            <div class="set-card-hd"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 8v5l3 2"/></svg><div><h3>Security status</h3><p>Secrets and targets resolved from the environment at sign-in.</p></div></div>
             <div class="set-body">
-              <div class="toggle-row"><svg class="icon" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><div class="tr-name">Require MFA for deploys</div><div class="tr-desc">Admins and deployers must hold a hardware key.</div><span class="switch on" data-switch style="align-self:center;margin:0 0 0 auto"></span></div>
-              <div class="toggle-row"><svg class="icon" viewBox="0 0 24 24"><path d="M12 3 4 7l8 4 8-4-8-4Z"/><path d="M4 11l8 4 8-4"/><path d="M4 15l8 4 8-4"/></svg><div class="tr-name">Pair-review before prod</div><div class="tr-desc">Requires an approving teammate on the PR.</div><span class="switch on" data-switch style="align-self:center;margin:0 0 0 auto"></span></div>
-              <div class="toggle-row"><svg class="icon" viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 14h10l1-14"/></svg><div class="tr-name">Auto-delete stale previews</div><div class="tr-desc">Previews for merged branches removed after 7 days.</div><span class="switch on" data-switch style="align-self:center;margin:0 0 0 auto"></span></div>
-              <div class="toggle-row"><svg class="icon" viewBox="0 0 24 24"><path d="M9 5H5a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h4"/><path d="M15 5h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/></svg><div class="tr-name">Audit log export</div><div class="tr-desc">Ship audit events to an S3 bucket nightly.</div><span class="switch" data-switch style="align-self:center;margin:0 0 0 auto"></span></div>
+              <div class="st-row"><div><div class="st-k">Admin password</div><div class="st-h">LAUNCHPAD_ADMIN_PASSWORD — required to sign in.</div></div><span class="st-pill"><span class="pill ok"><span class="dot"></span>OK</span></span></div>
+              <div class="st-row"><div><div class="st-k">GitHub PAT env</div><div class="st-h">GITHUB_PAT (or launchpad.json patEnvVar) — used for GitHub operations.</div></div><span class="st-pill"><span class="pill ok"><span class="dot"></span>OK</span></span></div>
+              <div class="st-row"><div><div class="st-k">Cloudflare API token</div><div class="st-h">CLOUDFLARE_API_TOKEN — used for deploys and env vars.</div></div><span class="st-pill"><span class="pill ok"><span class="dot"></span>OK</span></span></div>
+              <div class="st-row"><div><div class="st-k">Cloudflare account ID</div><div class="st-h">a1b2c3d9f8e7a1b2c3d9f8e7a1b2c3d9 — or CLOUDFLARE_ACCOUNT_ID.</div></div><span class="st-pill"><span class="pill ok"><span class="dot"></span>OK</span></span></div>
+              <div class="st-row"><div><div class="st-k">AWS access key env</div><div class="st-h">AWS_ACCESS_KEY_ID (config) — used for AWS deploys and env vars.</div></div><span class="st-pill"><span class="pill ok"><span class="dot"></span>OK</span></span></div>
+              <div class="st-row"><div><div class="st-k">AWS secret key env</div><div class="st-h">AWS_SECRET_ACCESS_KEY (config) — used for AWS deploys and env vars.</div></div><span class="st-pill"><span class="pill ok"><span class="dot"></span>OK</span></span></div>
+              <div class="st-row"><div><div class="st-k">AWS default region</div><div class="st-h">us-east-1 (default).</div></div><span class="st-pill"><span class="pill ok"><span class="dot"></span>OK</span></span></div>
+              <div class="st-row"><div><div class="st-k">Secret key</div><div class="st-h">LAUNCHPAD_SECRET — encrypts persisted GitHub tokens at rest.</div></div><span class="st-pill"><span class="pill ok"><span class="dot"></span>OK</span></span></div>
+              <div class="st-row"><div><div class="st-k">Target GitHub org</div><div class="st-h">newpage-hq — repos are created under this org.</div></div><span class="st-pill"><span class="pill ok"><span class="dot"></span>OK</span></span></div>
             </div>
           </div>
 
           <div class="card">
-            <div class="set-card-hd"><svg class="icon" viewBox="0 0 24 24"><path d="M20 3H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2Z"/><path d="M3 9h18M9 18v-2"/></svg><div><h3>Deploy config</h3><p>Defaults applied to every new launch.</p></div></div>
+            <div class="set-card-hd"><svg class="icon" viewBox="0 0 24 24"><path d="M20 3H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2Z"/><path d="M3 9h18M9 18v-2"/></svg><div><h3>Launchpad config</h3><p>Defaults applied to every new launch.</p></div></div>
             <div class="set-body">
               <div class="fgrid">
-                <div class="field"><label>Organization</label><input class="input" value="newpage-hq"><span class="help">Must match a verified GitHub org.</span></div>
-                <div class="field"><label>Default branch</label><input class="input" value="main"></div>
-                <div class="field"><label>Default region</label><select class="input"><option>us-east</option><option>us-west</option><option>eu-central</option></select></div>
-                <div class="field"><label>Log retention</label><select class="input"><option>7 days</option><option>30 days</option><option selected>90 days</option></select></div>
+                <div class="field"><label>Default Cloudflare account ID</label><input class="input" value="a1b2c3d9f8e7a1b2c3d9f8e7a1b2c3d9" placeholder="32-char Cloudflare account ID"></div>
+                <div class="field"><label>GitHub PAT env var name</label><input class="input" value="GITHUB_PAT" placeholder="GITHUB_PAT"></div>
+                <div class="field"><label>Default AWS region</label><input class="input" value="us-east-1" placeholder="us-east-1"><span class="help">Used for AWS deployments. Overridable per project at launch.</span></div>
               </div>
-              <div class="end mt-3"><button class="btn primary" data-save-settings>Save changes</button></div>
+              <div class="end mt-3"><button class="btn primary" data-save-settings>Save config</button></div>
             </div>
           </div>
 
           <div class="card">
-            <div class="set-card-hd"><svg class="icon" viewBox="0 0 24 24"><path d="M3 4h18v16H3z"/><path d="M3 9h18M9 9v11"/></svg><div><h3>Audit log</h3><p>Last 30 days of workspace activity. Export anytime.</p></div></div>
+            <div class="set-card-hd"><svg class="icon" viewBox="0 0 24 24"><path d="M3 4h18v16H3z"/><path d="M3 9h18M9 9v11"/></svg><div><h3>Recent activity</h3><p>Latest audit events across the workspace. Export anytime.</p></div></div>
             <div class="set-body">
               <div class="table-scroll">
               <table class="data audit-table">
-                <thead><tr><th>Event</th><th>Acting user</th><th>When</th><th>Outcome</th></tr></thead>
+                <thead><tr><th>Event</th><th>Acting user</th><th>Project</th><th>When</th><th>Outcome</th></tr></thead>
                 <tbody>
-                  <tr><td>deploy.started</td><td>jane.smith</td><td class="rel">2m ago</td><td><span class="outcome o ok">pass</span></td></tr>
-                  <tr><td>env.update</td><td>miguel.r</td><td class="rel">1h ago</td><td><span class="outcome o ok">pass</span></td></tr>
-                  <tr><td>deploy.failed</td><td>ci-bot</td><td class="rel">3h ago</td><td><span class="outcome o err">blocked</span></td></tr>
-                  <tr><td>preview.create</td><td>jane.smith</td><td class="rel">18m ago</td><td><span class="outcome o warn">warn</span></td></tr>
+                  <tr><td>Signed in</td><td>jane.smith</td><td>—</td><td class="rel">2m ago</td><td><span class="outcome o ok">pass</span></td></tr>
+                  <tr><td>Preview toggled on</td><td>jane.smith</td><td>storefront-next</td><td class="rel">18m ago</td><td><span class="outcome o ok">pass</span></td></tr>
+                  <tr><td>Env variable set</td><td>miguel.r</td><td>cms-admin</td><td class="rel">1h ago</td><td><span class="outcome o ok">pass</span></td></tr>
+                  <tr><td>Deploy failed</td><td>ci-bot</td><td>storefront-next</td><td class="rel">2h ago</td><td><span class="outcome o err">blocked</span></td></tr>
+                  <tr><td>Re-deploy triggered</td><td>miguel.r</td><td>api-gateway</td><td class="rel">3h ago</td><td><span class="outcome o ok">pass</span></td></tr>
+                  <tr><td>Binding added</td><td>jane.smith</td><td>storefront-next</td><td class="rel">4h ago</td><td><span class="outcome o ok">pass</span></td></tr>
+                  <tr><td>Member invited</td><td>jane.smith</td><td>storefront-next</td><td class="rel">5h ago</td><td><span class="outcome o warn">warn</span></td></tr>
+                  <tr><td>Access updated</td><td>miguel.r</td><td>api-gateway</td><td class="rel">1d ago</td><td><span class="outcome o ok">pass</span></td></tr>
+                  <tr><td>Project launched</td><td>carlos.g</td><td>jobs-worker</td><td class="rel">2d ago</td><td><span class="outcome o ok">pass</span></td></tr>
+                  <tr><td>Env variable removed</td><td>ci-bot</td><td>jobs-worker</td><td class="rel">2d ago</td><td><span class="outcome o ok">pass</span></td></tr>
                 </tbody>
               </table>
               </div>
@@ -1617,20 +1843,47 @@ table.data .goto-cell{position:relative}
   </div>
   <div class="op-body">
     <div class="logstream" id="logstream2">
-      <div class="logline"><span class="ts">12:04:02</span><span class="lvl info">info</span><span class="msg">route starship.mesh → us-east worker</span></div>
-      <div class="logline"><span class="ts">12:04:03</span><span class="lvl ok">ok</span><span class="msg">kv edge-cache hit 1.1ms</span></div>
-      <div class="logline"><span class="ts">12:04:04</span><span class="lvl info">info</span><span class="msg">GET / 200 · 19ms · cf-country=US</span></div>
-      <div class="logline"><span class="ts">12:04:05</span><span class="lvl warn">warn</span><span class="msg">cache warm for stripe took 3 ticks (target ≤2)</span></div>
-      <div class="logline"><span class="ts">12:04:06</span><span class="lvl info">info</span><span class="msg">GET /products?tag=new 200 · 24ms</span></div>
-      <div class="logline"><span class="ts">12:04:07</span><span class="lvl info">info</span><span class="msg">POST /api/checkout 201 · 212ms</span></div>
-      <div class="logline"><span class="ts">12:04:08</span><span class="lvl err">err</span><span class="msg">retry(3/5) stripe webhook — signature mismatch</span></div>
-      <div class="logline"><span class="ts">12:04:10</span><span class="lvl info">info</span><span class="msg">GET /api/nav 200 · 9ms</span></div>
+      <div class="logreq">
+        <div class="lr-head"><span class="lr-ts">12:04:04</span><span class="lr-method g">GET</span><span class="lr-url">storefront-next.newpage.io/</span><span class="lr-out ok">ok · 19ms</span></div>
+        <div class="lr-body">
+          <div class="logline"><span class="ts">12:04:04</span><span class="lvl info">info</span><span class="msg">route starship.mesh → us-east worker</span></div>
+          <div class="logline"><span class="ts">12:04:04</span><span class="lvl ok">ok</span><span class="msg">kv edge-cache hit 1.1ms · cf-country=US</span></div>
+        </div>
+      </div>
+      <div class="logreq">
+        <div class="lr-head"><span class="lr-ts">12:04:05</span><span class="lr-method g">GET</span><span class="lr-url">storefront-next.newpage.io/products?tag=new</span><span class="lr-out ok">ok · 24ms</span></div>
+        <div class="lr-body">
+          <div class="logline"><span class="ts">12:04:05</span><span class="lvl info">info</span><span class="msg">static route via edge cache · 124 routes</span></div>
+          <div class="logline"><span class="ts">12:04:06</span><span class="lvl warn">warn</span><span class="msg">cache warm for stripe took 3 ticks (target ≤2)</span></div>
+        </div>
+      </div>
+      <div class="logreq">
+        <div class="lr-head"><span class="lr-ts">12:04:07</span><span class="lr-method a">POST</span><span class="lr-url">storefront-next.newpage.io/api/checkout</span><span class="lr-out ok">ok · 212ms</span></div>
+        <div class="lr-body">
+          <div class="logline"><span class="ts">12:04:07</span><span class="lvl info">info</span><span class="msg">auth validated via workspace SSO</span></div>
+          <div class="logline"><span class="ts">12:04:08</span><span class="lvl ok">ok</span><span class="msg">stripe session created · 201</span></div>
+        </div>
+      </div>
+      <div class="logreq">
+        <div class="lr-head"><span class="lr-ts">12:04:08</span><span class="lr-method a">POST</span><span class="lr-url">storefront-next.newpage.io/api/checkout</span><span class="lr-out err">error</span></div>
+        <div class="lr-body">
+          <div class="logline"><span class="ts">12:04:08</span><span class="lvl err">err</span><span class="msg">retry(3/5) stripe webhook — signature mismatch</span></div>
+          <div class="lr-exc"><div class="exc-t">TypeError · Cannot read properties of undefined (reading 'price')</div><div class="exc-s">at calculateLineItems (cart/line-items.ts:42:19)
+at POST (api/checkout/route.ts:17:11)</div></div>
+        </div>
+      </div>
+      <div class="logreq">
+        <div class="lr-head"><span class="lr-ts">12:04:10</span><span class="lr-method g">GET</span><span class="lr-url">storefront-next.newpage.io/api/nav</span><span class="lr-out ok">ok · 9ms</span></div>
+        <div class="lr-body">
+          <div class="logline"><span class="ts">12:04:10</span><span class="lvl info">info</span><span class="msg">kv edge-cache hit 0.9ms</span></div>
+        </div>
+      </div>
     </div>
   </div>
   <div class="op-status">
     <span class="dot"></span>
     <span>Streaming from <b style="color:var(--text-2)">storefront-next</b> · tail since <b style="color:var(--text-2)">12:04:02</b></span>
-    <span class="st-count">8 lines</span>
+    <span class="st-count">5 requests · 8 lines</span>
     <span class="st-err">1 error</span>
   </div>
 </div>
@@ -1703,6 +1956,29 @@ table.data .goto-cell{position:relative}
   </div>
 </div>
 
+<div class="modal" data-modal="explain">
+  <div class="backdrop" data-close-modal></div>
+  <div class="dialog">
+    <div class="dlg-head">
+      <div style="display:flex;gap:14px;align-items:flex-start">
+        <span class="sparkle"><svg class="icon" viewBox="0 0 24 24"><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><path d="M5.6 5.6 8.4 8.4M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8"/><path d="M12 7l1.2 3.1L16.4 11l-3.2 1.2L12 15l-1.2-2.8L7.6 11l3.2-.9L12 7Z"/></svg></span>
+        <div>
+          <span class="expl-kicker">AI explain</span>
+          <h3 style="margin:4px 0 0">Why <span style="font-family:var(--font-mono)">b3f0a77</span> failed</h3>
+          <p>Run #42 · storefront-next · summarized from 212 log lines.</p>
+        </div>
+      </div>
+      <button class="dlg-x" data-close-modal><svg class="icon" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="dlg-body">
+      <p class="expl-prose">The build failed 9s in, during the bundling step. <b style="color:var(--text)">wrangler</b> resolved a D1 binding named <code class="muted" style="font-family:var(--font-mono)">shipments_db</code> that was not declared in <code class="muted" style="font-family:var(--font-mono)">wrangler.toml</code>. The manifest step then exited non-zero with code 1.</p>
+      <div class="expl-line"><span class="el-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M10.3 3.9 2.8 16a2 2 0 0 0 1.7 3h15a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 16.5v.2"/></svg></span><span><span class="el-t">Root cause</span><span class="el-s">ReferenceError: D1 binding "shipments_db" is not bound</span></span></div>
+      <div class="expl-line"><span class="el-icon"><svg class="icon" viewBox="0 0 24 24"><path d="m5 12 5 5L20 6"/></svg></span><span><span class="el-t">Fix</span><span class="el-s">Add <code class="muted" style="font-family:var(--font-mono)">[[d1_databases]] binding = "shipments_db" database_id = "…"</code> to wrangler.toml, then push to main.</span></span></div>
+    </div>
+    <div class="dlg-foot"><button class="btn ghost" data-close-modal>Close</button><button class="btn ghost" data-open-modal="logs" data-close-modal>View logs</button><button class="btn primary" data-retry-run>Retry deploy</button></div>
+  </div>
+</div>
+
 <div class="modal" data-modal="env">
   <div class="backdrop" data-close-modal></div>
   <div class="dialog sm">
@@ -1736,8 +2012,8 @@ table.data .goto-cell{position:relative}
 
 <script>
 /* ── tiny router ─────────────────────────────────────────── */
-const VIEWS = ['login','launch','import','projects','project','live-logs','preview-branch','templates','settings'];
-const CRUMB = {login:'Sign in',projects:'Projects',project:'Projects / storefront-next',launch:'Launch a project',import:'Import an existing repo',templates:'Templates',settings:'Workspace settings','live-logs':'Live logs','preview-branch':'Preview branches'};
+const VIEWS = ['login','invite','launch','import','projects','project','live-logs','preview-branch','templates','settings'];
+const CRUMB = {login:'Sign in',invite:'Join a project',projects:'Projects',project:'Projects / storefront-next',launch:'Launch a project',import:'Import an existing repo',templates:'Templates',settings:'Workspace settings','live-logs':'Live logs','preview-branch':'Preview branches'};
 function route(){
   const name = (location.hash.replace(/^#\/?/,'').split('?')[0]) || 'login';
   if(!VIEWS.includes(name)){ location.hash = '#/projects'; return; }
@@ -1840,17 +2116,18 @@ document.addEventListener('click', e=>{
   }
 
   /* modals */
+  if(e.target.closest('[data-close-modal]')){
+    const c = e.target.closest('[data-close-modal]');
+    const m = c.closest('.modal'); if(m) m.classList.remove('show');
+    if(c.dataset.goto) go(c.dataset.goto);
+    if(c.dataset.openModal){ const nm = document.querySelector('[data-modal="'+c.dataset.openModal+'"]'); if(nm) nm.classList.add('show'); }
+    return;
+  }
   if(e.target.closest('[data-open-modal]')){
     closeMenus();
     const o = e.target.closest('[data-open-modal]');
     const m = document.querySelector('[data-modal="'+o.dataset.openModal+'"]');
     if(m) m.classList.add('show');
-    return;
-  }
-  if(e.target.closest('[data-close-modal]')){
-    const c = e.target.closest('[data-close-modal]');
-    const m = c.closest('.modal'); if(m) m.classList.remove('show');
-    if(c.dataset.goto) go(c.dataset.goto);
     return;
   }
   if(e.target.closest('.modal .backdrop')){ closeModals(); return; }
@@ -2143,6 +2420,101 @@ document.querySelectorAll('.seg').forEach(segEl=>{
     segEl.querySelectorAll('button').forEach(x=>x.classList.remove('on'));
     b.classList.add('on');
   }));
+});
+
+/* ── real-app features: members / access / explain / invite ─┐ */
+document.addEventListener('click', e=>{
+
+  /* AI explain */
+  const ex = e.target.closest('[data-explain]');
+  if(ex){
+    const m = document.querySelector('[data-modal="explain"]');
+    if(m) m.classList.add('show');
+    showToast('info','Analyzing failure', ex.dataset.explain+' · run #42 · 212 log lines');
+    return;
+  }
+  const rr = e.target.closest('[data-retry-run]');
+  if(rr){
+    const m = document.querySelector('[data-modal="explain"]'); if(m) m.classList.remove('show');
+    showToast('ok','Re-deploy triggered','b3f0a77 · attempt 2 · storefront-next');
+    return;
+  }
+
+  /* create invite link */
+  const ci = e.target.closest('[data-create-invite]');
+  if(ci){
+    const wrap = document.getElementById('inviteWrap');
+    if(wrap){
+      wrap.classList.remove('hidden');
+      const who = (document.getElementById('inviteEmail')||{}).value || 'teammate@newpage.io';
+      const token = 'npkw_'+Math.random().toString(36).slice(2,10);
+      document.getElementById('inviteLink').textContent = 'https://launchpad.newpage.io/invite/'+token;
+    }
+    const role = (document.getElementById('inviteRole')||{}).value || 'member';
+    showToast('ok','Invite created','Valid 7 days · role: '+role);
+    return;
+  }
+
+  /* copy explicit value from element or attribute */
+  const cv = e.target.closest('[data-copy-value]');
+  if(cv){
+    let txt = '';
+    const el = cv.dataset.copyValue ? document.querySelector(cv.dataset.copyValue) : null;
+    if(el) txt = (el.value != null ? String(el.value) : el.textContent || '').trim();
+    try{ if(navigator.clipboard) navigator.clipboard.writeText(txt); }catch(err){}
+    showToast('ok','Copied to clipboard', (txt.length>34 ? txt.slice(0,34)+'…' : txt) || '—');
+    return;
+  }
+  const ct = e.target.closest('[data-copy-text]');
+  if(ct){
+    try{ if(navigator.clipboard) navigator.clipboard.writeText(ct.dataset.copyText); }catch(err){}
+    showToast('ok','Copied to clipboard', ct.dataset.copyText);
+    return;
+  }
+
+  /* access mode radios */
+  const as = e.target.closest('[data-access-seg]');
+  if(as){
+    as.parentElement.querySelectorAll('.seg-row').forEach(r=>r.classList.remove('on'));
+    as.classList.add('on');
+    const lbl = as.querySelector('.s-t');
+    showToast('info','Site access updated', lbl ? lbl.textContent : '');
+    return;
+  }
+  if(e.target.closest('[data-rotate-key]')){
+    showToast('warn','Key rotated','Old key revoked — update your fetch headers.');
+    return;
+  }
+  if(e.target.closest('[data-rem-member]')){
+    showToast('warn','Member updated','Invite revoked. They can no longer join.');
+    return;
+  }
+
+  /* provisioning from code */
+  if(e.target.closest('[data-provision-edit]')){
+    showToast('info','Opening wrangler.toml','Resource plan re-evaluates on the next push to main.');
+    return;
+  }
+  const pt = e.target.closest('[data-provision-toggle]');
+  if(pt){
+    const pill = document.getElementById('provPill');
+    const on = pt.textContent.trim()==='Disable';
+    pt.textContent = on ? 'Enable' : 'Disable';
+    if(pill) pill.innerHTML = on ? '<span class="dot"></span>disabled' : '<span class="dot"></span>enabled';
+    showToast(on ? 'warn' : 'ok',
+      on ? 'Provisioning disabled' : 'Provisioning enabled',
+      on ? 'Declared resources detach on the next deploy.' : 'Push to main to create declared resources.');
+    return;
+  }
+
+  /* invite accept */
+  const ia = e.target.closest('[data-invite-accept]');
+  if(ia){
+    const u = (document.getElementById('inviteUserName')||{}).value || 'you';
+    showToast('ok','Invite accepted','You joined storefront-next as '+u+' (member).');
+    setTimeout(()=> go('projects'), 450);
+    return;
+  }
 });
 </script>
 </body>

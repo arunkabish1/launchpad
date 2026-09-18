@@ -34,6 +34,9 @@ const ACTION_META: Record<AuditEntry["action"], { label: string; icon: string; c
   member_role_change: { label: "Member role changed", icon: "◈", color: "text-sky-300" },
   collaborator_add: { label: "GitHub collaborator added", icon: "◈", color: "text-purple-300" },
   collaborator_remove: { label: "GitHub collaborator removed", icon: "◇", color: "text-purple-300" },
+  site_access_enable: { label: "Site access enabled", icon: "🔒", color: "text-emerald-300" },
+  site_access_disable: { label: "Site access disabled", icon: "🔓", color: "text-slate-400" },
+  site_access_rotate: { label: "Site access key rotated", icon: "⟳", color: "text-amber-300" },
 };
 
 export default function ActivityPanel({ projectName }: ActivityPanelProps) {

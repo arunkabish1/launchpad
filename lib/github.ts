@@ -500,6 +500,21 @@ export interface ExistingAuthor {
   email: string;
 }
 
+export async function getRepoFileContent(
+  client: Octokit,
+  owner: string,
+  repo: string,
+  path: string
+): Promise<string | null> {
+  try {
+    const { data } = await client.rest.repos.getContent({ owner, repo, path });
+    if (Array.isArray(data) || !("content" in data) || data.type !== "file") return null;
+    return Buffer.from(data.content, "base64").toString("utf8");
+  } catch {
+    return null;
+  }
+}
+
 export async function pushFilesToExistingRepo(
   client: Octokit,
   owner: string,

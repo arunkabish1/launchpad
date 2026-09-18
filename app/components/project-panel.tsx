@@ -30,6 +30,7 @@ import PreviewPanel from "./preview-panel";
 import ProvisionPanel from "./provision-panel";
 import ActivityPanel from "./activity-panel";
 import MembersPanel from "./members-panel";
+import AccessPanel from "./access-panel";
 
 interface ProjectTemplateInfo {
   name: string;
@@ -145,7 +146,7 @@ function OverflowMenu({
 }
 
 // ── Tab types ────────────────────────────────────────────────────────────────
-type TabId = "overview" | "deploys" | "env" | "bindings" | "members" | "activity";
+type TabId = "overview" | "deploys" | "env" | "bindings" | "members" | "access" | "activity";
 
 const TABS: Array<{ id: TabId; label: string }> = [
   { id: "overview", label: "Overview" },
@@ -153,6 +154,7 @@ const TABS: Array<{ id: TabId; label: string }> = [
   { id: "env", label: "Environment" },
   { id: "bindings", label: "Bindings" },
   { id: "members", label: "Members" },
+  { id: "access", label: "Access" },
   { id: "activity", label: "Activity" },
 ];
 
@@ -855,6 +857,15 @@ export default function ProjectPanel({
             projectId={project.id}
             projectName={project.name}
             role={role}
+            canManage={role === "owner"}
+          />
+        )}
+
+        {/* ── ACCESS TAB ── */}
+        {activeTab === "access" && (
+          <AccessPanel
+            projectId={project.id}
+            projectName={project.name}
             canManage={role === "owner"}
           />
         )}
